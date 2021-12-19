@@ -7,6 +7,14 @@
         "stdio.h": "c",
         "*.tcc": "cpp",
         "cstdint": "cpp",
-        "main.h": "c"
+        "main.h": "c",
+        "cctype": "cpp",
+        "climits": "cpp",
+        "cstdarg": "cpp",
+        "cstdio": "cpp",
+        "cstdlib": "cpp",
+        "cwchar": "cpp",
+        "cwctype": "cpp",
+        "libraries.h": "c"
     }
 }

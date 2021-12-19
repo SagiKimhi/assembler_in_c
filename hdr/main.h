@@ -67,6 +67,12 @@
 #define GENERATE_STRING(STRING) #STRING,
 #endif
 
+#define COMMENT ';' /* this is the comment syntax in assembly */
+
+
+
+
+
 /* Constants, Typedefs, etc. : */
 enum OP_INSTRUCTIONS_ENUM {
 	FOREACH_OPERATION_CELL_INDEX(GENERATE_ENUM)
@@ -124,12 +130,10 @@ enum addressingModes {
 
 typedef union {
 	uint8_t memoryCell[MEMSIZE];
-
 	struct no_op_instruction{
 		uint8_t opcode[OPCODE];
 		uint8_t instructCode[INSTRUCTION_CODE];
 	};
-
 	struct op_instruct{
 		uint8_t dAddrssMode[D_ADDRSS_MODE];
 		uint8_t dRegister[D_REGISTER];
