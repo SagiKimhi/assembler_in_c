@@ -26,105 +26,31 @@
 *
 */
 #include <macro.h>
+#include <linkedList.h>
+#include <hashTable.h>
 
-int scanAndExpandMacros(FILE *fp)
+Macro *newMacro(char *text, fpos_t position)
 {
-	char line[MAX_LINE_LEN+1] = {0};
-	char *ptr = NULL;
-	LIST **macroTable = NULL;
-	if (!fp)
-		return 0;
-	while (fgets(line, MAX_LINE_LEN+1, fp)) {
-		if (!(ptr = strstr(line, "macro")))
-			return 0;
-	}
-}
-
-int macroRec(FILE *fp, char *line, uint8_t mFlag)
-{
-	uint8_t i;
-	if (!fp || !line || !fgets(line, MAX_LINE_LEN, fp))
-		return 0;
-	
-}
-
-/* 	newElement: Returns a pointer to a new LIST element, or null if not enough
-	space could be allocated in memory. */
-LIST *newElement(char *text)
-{
-	LIST *newp = NULL;
+	Macro *ptr = NULL;
 	if (!text)
 		return NULL;
-	if (!(newp = (LIST *)malloc(sizeof(LIST))))
+	if(!(ptr = (Macro *)malloc(sizeof(Macro))))
 		return NULL;
-	if (!(newp->text = (char *)malloc(strlen(text)+1))) {
-		free(newp);
-		return NULL;
-	}
-	strcpy(newp->text, text);
-	newp->next = NULL;
-	return newp;
-}
-
-/* deleteElement: removes an element from the list */
-LIST *deleteElement(LIST *head, LIST *element)
-{
-	LIST *ptr, *prev;
-	ptr=prev=head;
-	while (ptr && ptr!=element) {
-		prev = ptr;
-		ptr = ptr->next;
-	}
-	if (!ptr)
-		return head;
-	if (ptr == head) {
-		prev = ptr->next;
-		free(ptr->text);
+	ptr->key = (char *)malloc(sizeof(char)*(strlen(text)+1));
+	if (!ptr->key) {
 		free(ptr);
-		return prev;
+		return NULL;
 	}
-	prev->next = ptr->next;
-	free(ptr->text);
-	free(ptr);
-	return head;
+	strcpy(ptr->key, text);
+	ptr->fStartPos = position;
+	return ptr;
 }
 
-void deleteList(LIST *head)
+void deleteMacro(Macro *macro)
 {
-	if (!head)
+	if (!macro)
 		return;
-	while (head->next)
-		deleteElement(head, head->next);
-	deleteElement(head, head);
-}
-
-/* addToStart: add an element to the begining of the list. */
-LIST *addToStart(LIST *head, LIST *element)
-{
-	if (!head || !element)
-		return head;
-	element->next=head;
-	return element;
-}
-
-/* addToEnd: add an element to the end of the list. */
-LIST *addToEnd(LIST *tail, LIST *element)
-{
-	if (!tail || !element)
-		return tail;
-	tail->next = element;
-	element->next = NULL;
-	return element;
-}
-
-/* fprintList: prints the text contents of the list's elements onto a file. */
-void fprintList(FILE *fp, LIST *head)
-{
-	LIST *ptr = head;
-	if (!fp)
-		return;
-	while (ptr) {
-		fprintf(fp, "%s", ptr->text);
-		ptr = ptr->next;
-	}
+	free(macro->key);
+	free(macro);
+	macro = NULL;
 }
