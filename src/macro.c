@@ -29,7 +29,67 @@
 #include <linkedList.h>
 #include <hashTable.h>
 
-Macro *newMacro(char *text, fpos_t position)
+
+void fexpandMacro(FILE *fp, Macro *macro)
+{
+	int32_t latestMacroPos, latestFilePos = ftell(fp);
+	uint8_t tempLine[MAX_LINE_LEN];
+	fseek(fp, macro->fStartPos, SEEK_SET);
+	while (ftell(fp) != macro->fEndPos)
+	{
+		if (!fgets(tempLine, MAX_LINE_LEN, fp))
+			break;
+		latestMacroPos = ftell(fp);
+		fseek(fp, latestFilePos, SEEK_SET);
+		fprintf(fp, "%s", tempLine);
+		latestFilePos = ftell(fp);
+		fseek(fp, latestMacroPos, SEEK_SET);
+	}
+	fseek(fp, latestFilePos, SEEK_SET);
+}
+
+uint8_t fscanAndExpandMacros(FILE *fp, MacroTable *macroTable, uint8_t isMacroFlag)
+{
+	int8_t c;
+	uint8_t line[MAX_LINE_LEN], *temp;
+	Macro *ptr;
+	if (!fscanf(fp, "%s", line)) {
+		if (feof(fp))
+			return EOF;
+		fprintRestOfLine(fp);
+		return fscanAndExpandMacros(fp, macroTable, 0);
+	}
+	if (isMacroFlag) {
+		ptr = newMacro(line);
+		ptr->fStartPos = ftell(fp);
+		while (fgets(line, MAX_LINE_LEN, fp)) {
+			if (!(temp=strstr(line, "endm")))
+				continue;
+			ptr->fEndPos = ftell(fp);
+			break;
+		}
+		if (!insert(macroTable, ptr))
+			exit(EXIT_FAILURE);
+		return fscanAndExpandMacros(fp, macroTable, 0);
+	}
+	if (strcmp(line, "macro")) {
+		if ((ptr = search(macroTable, line)))
+			fexpandMacro(fp, ptr);
+		else 
+			fputs(line, fp);
+	}
+	fprintRestOfLine(fp);
+	return fscanAndExpandMacros(fp, macroTable, 1);
+}
+
+void fprintRestOfLine(FILE *fp)
+{
+	int8_t c;
+	while ((c=fgetc(fp))!='\n' && c!=EOF)
+			fputc(c, fp);
+}
+
+Macro *newMacro(char *text)
 {
 	Macro *ptr = NULL;
 	if (!text)
@@ -42,7 +102,6 @@ Macro *newMacro(char *text, fpos_t position)
 		return NULL;
 	}
 	strcpy(ptr->key, text);
-	ptr->fStartPos = position;
 	return ptr;
 }
 

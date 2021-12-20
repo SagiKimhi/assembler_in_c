@@ -2,6 +2,7 @@
 
 typedef struct _macro{
 	uint8_t *key;
-	fpos_t fStartPos;
+	int32_t fStartPos;
+	int32_t fEndPos;
 	/* add more stuff here later maybe */
 } Macro;

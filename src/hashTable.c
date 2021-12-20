@@ -14,7 +14,7 @@ static uint32_t getNextPrime(uint32_t prime)
 	or if the new size requested is smaller than the table's current size.
 	If not enough space could be allocated, no operation occures and the size of the old
 	table is returned. */
-int32_t setTableSize(MacroTable *macroTable, uint32_t size)
+static int32_t setTableSize(MacroTable *macroTable, uint32_t size)
 {
 	Macro **ptr;
 	uint32_t i, oldSize;
@@ -51,7 +51,7 @@ uint8_t initTable(MacroTable *macroTable, uint32_t size)
 }
 
 /* hash: returnes a hash value for the given text key argument. */
-uint16_t hash(char *key)
+static uint16_t hash(char *key)
 {
 	uint16_t hash = 5381;
 	int32_t c;
@@ -61,7 +61,7 @@ uint16_t hash(char *key)
 }
 
 /*	hash1: default function for generating an index in a table from a given hash value. */
-uint32_t hash1(uint32_t hashVal, uint32_t tableSize)
+static uint32_t hash1(uint32_t hashVal, uint32_t tableSize)
 {
 	return (hashVal%tableSize); /* [0,m-1] */
 }
@@ -82,7 +82,7 @@ static uint32_t doubleHash(uint32_t h1, uint32_t h2, uint32_t fact, uint32_t tab
 
 /* 	checkLoadFact: returns 1 if the table's load factor is below the defined MAX_LOAD_FACTOR,
 	returns 0 otherwise. Returns -1 if the MacroTable pointer argument is NULL. */
-int32_t checkLoadFact(MacroTable *macroTable)
+static int32_t checkLoadFact(MacroTable *macroTable)
 {
 	if (!macroTable)
 		return -1;
@@ -94,7 +94,7 @@ int32_t checkLoadFact(MacroTable *macroTable)
 /* rehash: rehashes the macroTable onto a new larger MacroTable, maintaining a maximum
 	load factor of the defined REHASH_LOAD_FACTOR. returns a pointer to the new table upon success,
 	or NULL pointer if the function failed for any reason.  */
-Macro *rehash(MacroTable *macroTable)
+static Macro *rehash(MacroTable *macroTable)
 {
 	MacroTable temp;
 	uint32_t oldSize, newPrime, i;
