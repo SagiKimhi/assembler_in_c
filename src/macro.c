@@ -30,62 +30,92 @@
 #include <hashTable.h>
 
 
-void fexpandMacro(FILE *fp, Macro *macro)
+void MacroPreproccessor(FILE *read, FILE *write)
 {
-	int32_t latestMacroPos, latestFilePos = ftell(fp);
-	char tempLine[MAX_LINE_LEN];
-	fseek(fp, macro->fStartPos, SEEK_SET);
-	while (ftell(fp) < macro->fEndPos)
-	{
-		if (!fgets(tempLine, MAX_LINE_LEN, fp))
-			break;
-		latestMacroPos = ftell(fp);
-		fseek(fp, latestFilePos, SEEK_SET);
-		fprintf(fp, "%s", tempLine);
-		latestFilePos = ftell(fp);
-		fseek(fp, latestMacroPos, SEEK_SET);
-	}
-	fseek(fp, latestFilePos, SEEK_SET);
+	MacroTable macroTable;
+	if (!read || !write)
+		return;
+	initTable(&macroTable, TABLE_SIZE);
+	fscanAndExpandMacros(read, write, &macroTable, 0);
+	deleteTable(&macroTable);
 }
 
-uint8_t fscanAndExpandMacros(FILE *fp, MacroTable *macroTable, uint8_t isMacroFlag)
+char *fgetWord(char *line, uint8_t len, FILE *fp)
 {
-	char line[MAX_LINE_LEN], *temp;
-	Macro *ptr;
-	if (!fscanf(fp, "%s", line)) {
-		if (feof(fp))
-			return EOF;
-		fprintRestOfLine(fp);
-		return fscanAndExpandMacros(fp, macroTable, 0);
-	}
-	if (isMacroFlag) {
-		ptr = newMacro(line);
-		ptr->fStartPos = ftell(fp);
-		while (fgets(line, MAX_LINE_LEN, fp)) {
-			if (!(temp=strstr(line, "endm")))
-				continue;
-			ptr->fEndPos = (ftell(fp)-sizeof("endm"));
+	int16_t c;
+	uint16_t i, j;
+	i=j=0;
+	if (!line)
+		return NULL;
+	while(i<len-1 && (c = fgetc(fp))!=EOF) {
+		line[i++] = c;
+		if (j && isspace(c))
 			break;
+		if (!isspace(c))
+			j++;
+	}
+	line[i] = '\0';
+	return (!j) ? NULL: line;
+}
+
+
+void fexpandMacro(FILE *rp, FILE *wp, Macro *macro)
+{
+	int32_t latestReadPos;
+	if (!rp || !wp || !macro)
+		return;
+	latestReadPos = ftell(rp);
+	fseek(rp, macro->fStartPos, SEEK_SET);
+	while (ftell(rp) < macro->fEndPos)
+		fputc(fgetc(rp), wp);
+	fseek(rp, latestReadPos, SEEK_SET);
+}
+
+uint8_t fscanAndExpandMacros(FILE *rp, FILE *wp, MacroTable *macroTable, uint8_t macroFlag)
+{
+	char word[MAX_LINE_LEN];
+	int16_t i=0;
+	Macro *ptr;
+	if (!fgetWord(word, MAX_LINE_LEN, rp)) {
+		if (feof(rp))
+			return EOF;
+		if (macroFlag)
+			return fscanAndExpandMacros(rp, wp, macroTable, macroFlag);
+	}
+	while (isspace(word[i]))
+			i++;
+	if (macroFlag) {
+		int32_t pos = ftell(rp);
+		if (!word[i])
+			exit(EXIT_FAILURE);
+		ptr = newMacro(&word[i]);
+		ptr->fStartPos = pos;
+		while (!feof(rp) && !strstr(word, "endm")) {
+			pos = ftell(rp);
+			fgetWord(word, MAX_LINE_LEN, rp);
 		}
+		ptr->fEndPos = pos;
 		if (!insert(macroTable, ptr))
 			exit(EXIT_FAILURE);
-		return fscanAndExpandMacros(fp, macroTable, 0);
+		return fscanAndExpandMacros(rp, wp, macroTable, 0);
 	}
-	if (strcmp(line, "macro")) {
-		if ((ptr = search(macroTable, line)))
-			fexpandMacro(fp, ptr);
-		else 
-			fputs(line, fp);
-	}
-	fprintRestOfLine(fp);
-	return fscanAndExpandMacros(fp, macroTable, 1);
+	if (strstr(word, "macro")!=NULL)
+		return fscanAndExpandMacros(rp, wp, macroTable, 1);
+	if ((ptr = search(macroTable, &word[i]))!=NULL)
+		fexpandMacro(rp, wp, ptr);
+	else 
+		fputs(word, wp);
+	fprintRestOfLine(rp, wp);
+	return fscanAndExpandMacros(rp, wp, macroTable, 0);
 }
 
-void fprintRestOfLine(FILE *fp)
+void fprintRestOfLine(FILE *rp, FILE *wp)
 {
-	int8_t c;
-	while ((c=fgetc(fp))!='\n' && c!=EOF)
-			fputc(c, fp);
+	int16_t c;
+	while ((c=fgetc(rp))!=EOF && c!='\n')
+			fputc(c, wp);
+	if (c=='\n')
+		fputc(c, wp);
 }
 
 Macro *newMacro(char *text)

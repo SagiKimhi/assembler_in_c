@@ -8,7 +8,7 @@ LIB=-I$(HDR)
 HDRS=$(wildcard $(HDR)/*.h)
 SRCS=$(wildcard $(SRC)/*.c)
 OBJS=$(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(SRCS))
-BIN=main
+BIN=asmake
 
 all: $(BIN)
 

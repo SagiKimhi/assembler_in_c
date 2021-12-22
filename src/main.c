@@ -10,17 +10,17 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 	while (argc>1) {
-		FILE *fp = NULL;
-		MacroTable macroTable;
-		fp = fopen(argv[argc-1], "r+");
-		if (!fp) {
+		FILE *read, *write;
+		read = write = NULL;
+		read = fopen(argv[argc-1], "r");
+		write = fopen("res.as", "w");
+		if (!read || !write) {
 			fprintf(stderr, "Error!\nInvalid file name: %s", argv[argc-1]);
 			return EXIT_FAILURE;
 		}
-		initTable(&macroTable, TABLE_SIZE);
-		fscanAndExpandMacros(fp, &macroTable, 0);
-		deleteTable(&macroTable);
-		fclose(fp);
+		MacroPreproccessor(read, write);
+		fclose(read);
+		fclose(write);
 		argc--;
 	}
 	return EXIT_SUCCESS;
