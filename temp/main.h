@@ -1,15 +1,8 @@
 #ifndef _MAIN_H
 #define _MAIN_H
 
-/* Standard Lib Headers: */
-#include <stdio.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
-#include <limits.h>
-
-/* Our Headers: */
-#include <sizes.h>
+/* Headers: */
+#include <libraries.h>
 
 /* Defines and Macros: */
 #ifndef __X_MACROS__
@@ -39,7 +32,7 @@
 	OPERATION(absolute) \
 	OPERATION(relocatable) \
 	OPERATION(external) \
-	OPERATION(_0_)
+	OPERATION(_0_) \
 
 #ifdef __FOREACH_HEX_VALUE__
 #undef __FOREACH_HEX_VALUE__
@@ -61,7 +54,7 @@
 	OPERATION(_C) \
 	OPERATION(_D) \
 	OPERATION(_E) \
-	OPERATION(_F) 
+	OPERATION(_F) \
 
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,

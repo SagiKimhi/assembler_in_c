@@ -1,4 +1,4 @@
-#include <linkedList.h>-
+#include <linkedList.h>
 
 /* 	newElement: Returns a pointer to a new LIST element, or null if not enough
 	space could be allocated in memory. */

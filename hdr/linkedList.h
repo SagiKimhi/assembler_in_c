@@ -1,5 +1,6 @@
+#ifndef _LINKED_LIST_H
+#define _LINKED_LIST_H
 #include <libraries.h>
-#include <sizes.h>
 
 typedef struct node {
 	char *text;
@@ -19,3 +20,5 @@ LIST *addToEnd(LIST *tail, LIST *element);
 void fprintList(FILE *fp, LIST *head);
 /*	deleteList: deletes the entire list */
 void deleteList(LIST *head);
+
+#endif

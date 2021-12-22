@@ -33,9 +33,9 @@
 void fexpandMacro(FILE *fp, Macro *macro)
 {
 	int32_t latestMacroPos, latestFilePos = ftell(fp);
-	uint8_t tempLine[MAX_LINE_LEN];
+	char tempLine[MAX_LINE_LEN];
 	fseek(fp, macro->fStartPos, SEEK_SET);
-	while (ftell(fp) != macro->fEndPos)
+	while (ftell(fp) < macro->fEndPos)
 	{
 		if (!fgets(tempLine, MAX_LINE_LEN, fp))
 			break;
@@ -50,8 +50,7 @@ void fexpandMacro(FILE *fp, Macro *macro)
 
 uint8_t fscanAndExpandMacros(FILE *fp, MacroTable *macroTable, uint8_t isMacroFlag)
 {
-	int8_t c;
-	uint8_t line[MAX_LINE_LEN], *temp;
+	char line[MAX_LINE_LEN], *temp;
 	Macro *ptr;
 	if (!fscanf(fp, "%s", line)) {
 		if (feof(fp))
@@ -65,7 +64,7 @@ uint8_t fscanAndExpandMacros(FILE *fp, MacroTable *macroTable, uint8_t isMacroFl
 		while (fgets(line, MAX_LINE_LEN, fp)) {
 			if (!(temp=strstr(line, "endm")))
 				continue;
-			ptr->fEndPos = ftell(fp);
+			ptr->fEndPos = (ftell(fp)-sizeof("endm"));
 			break;
 		}
 		if (!insert(macroTable, ptr))

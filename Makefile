@@ -1,7 +1,6 @@
 CC=gcc
 CFLAGS=-ansi -pedantic -g -Wall
 OFLAGS=-c
-
 HDR=hdr
 SRC=src
 OBJ=obj
@@ -14,9 +13,9 @@ BIN=main
 all: $(BIN)
 
 $(BIN): $(OBJS)
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) $(OBJS) -o $@
 
-$(OBJ)/%.o: $(SRC)/%.c $(HDR)/%.h
+$(OBJ)/%.o: $(SRC)/%.c $(HDRS)
 	$(CC) $(CFLAGS) $(OFLAGS) $< -o $@ $(LIB)
 
 $(OBJ):

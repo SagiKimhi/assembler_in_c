@@ -1,6 +1,6 @@
 #ifndef _SIZES_H
 #define SIZES_H
-
+#include <stdio.h>
 
 #ifndef MEMSIZE
 #define MEMSIZE 8192

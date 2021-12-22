@@ -1,8 +1,13 @@
 #include <libraries.h>
+#include <types.h>
 
-typedef struct _macro{
-	uint8_t *key;
-	int32_t fStartPos;
-	int32_t fEndPos;
-	/* add more stuff here later maybe */
-} Macro;
+#ifndef _MACRO_H
+#define _MACRO_H
+
+void fexpandMacro(FILE *fp, Macro *macro);
+uint8_t fscanAndExpandMacros(FILE *fp, MacroTable *macroTable, uint8_t isMacroFlag);
+void fprintRestOfLine(FILE *fp);
+Macro *newMacro(char *text);
+void deleteMacro(Macro *macro);
+
+#endif

@@ -1,4 +1,5 @@
 #include <hashTable.h>
+#include <macro.h>
 
 /*	getNextPrime: returns a positive prime number larger than the argument.
 	If the argument is not a prime number the behavior us undefined. */
@@ -37,7 +38,6 @@ static int32_t setTableSize(MacroTable *macroTable, uint32_t size)
 	returns 1 upon success, or 0 if the pointer is null or not enough memory could be allocated. */
 uint8_t initTable(MacroTable *macroTable, uint32_t size)
 {
-	uint32_t index;
 	if (!macroTable)
 		return 0;
 	macroTable->table = NULL;
@@ -55,7 +55,7 @@ static uint16_t hash(char *key)
 {
 	uint16_t hash = 5381;
 	int32_t c;
-	while (c = *key++)
+	while ((c = *key++))
 		hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 	return hash;
 }
@@ -94,19 +94,19 @@ static int32_t checkLoadFact(MacroTable *macroTable)
 /* rehash: rehashes the macroTable onto a new larger MacroTable, maintaining a maximum
 	load factor of the defined REHASH_LOAD_FACTOR. returns a pointer to the new table upon success,
 	or NULL pointer if the function failed for any reason.  */
-static Macro *rehash(MacroTable *macroTable)
+static MacroTable *rehash(MacroTable *macroTable)
 {
 	MacroTable temp;
-	uint32_t oldSize, newPrime, i;
+	uint32_t newPrime, index;
 	float count;
 	newPrime = macroTable->tableSize;
 	while ((count = macroTable->mCount)/newPrime > REHASH_LOAD_FACTOR)
 		newPrime = getNextPrime(newPrime);
 	if (!initTable(&temp, newPrime))
 		return NULL;
-	for (i=0; i<macroTable->tableSize; i++)
-		insert(&temp, macroTable->table[i]);
-	freeTable(macroTable);
+	for (index=0; index<macroTable->tableSize; index++)
+		insert(&temp, macroTable->table[index]);
+	deleteTable(macroTable);
 	macroTable = &temp;
 	return macroTable;
 }
@@ -115,8 +115,8 @@ static Macro *rehash(MacroTable *macroTable)
 	to the macro upon success or NULL upon failure. */
 Macro *insert(MacroTable *macroTable, Macro *macro)
 {
-	uint32_t hkey, startVal, stepVal, fact, index, oldSize, primeNum;
-	if (!macroTable || !macro || search(macroTable, macro->key))
+	uint32_t hkey, startVal, stepVal, fact, index;
+	if (!macroTable || !macro || (search(macroTable, macro->key)!=NULL))
 		return NULL;
 	if (!checkLoadFact(macroTable))
 		if(!rehash(macroTable) && macroTable->mCount>=macroTable->tableSize)
@@ -153,8 +153,8 @@ Macro *search(MacroTable *macroTable, char *key)
 	return NULL;
 }
 
-/* freeTable: deletes a macroTable **AND THE MACROS WITHIN IT** from memory. */
-void freeTable(MacroTable *macroTable)
+/* deleteTable: deletes a macroTable **AND THE MACROS WITHIN IT** from memory. */
+void deleteTable(MacroTable *macroTable)
 {
 	uint16_t index;
 	for (index = 0; index<macroTable->tableSize; index++) {
