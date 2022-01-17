@@ -26,119 +26,99 @@
 *
 */
 #include <macro.h>
-#include <linkedList.h>
-#include <hashTable.h>
-
 
 void MacroPreproccessor(FILE *read, FILE *write)
 {
-	MacroTable macroTable;
+	HashTable *hashTable;
 	if (!read || !write)
 		return;
-	initTable(&macroTable, TABLE_SIZE);
-	fscanAndExpandMacros(read, write, &macroTable, 0);
-	deleteTable(&macroTable);
+	initTable(hashTable, TABLE_SIZE);
+	fscanAndExpandMacros(read, write, hashTable, 0);
+	deleteTable(hashTable);
 }
 
-char *fgetWord(char *line, uint8_t len, FILE *fp)
+int fscanAndExpandMacros(FILE *readPtr, FILE *writePtr, HashTable *hashTable, int macroFlag)
 {
-	int16_t c;
-	uint16_t i, j;
-	i=j=0;
-	if (!line)
-		return NULL;
-	while(i<len-1 && (c = fgetc(fp))!=EOF) {
-		line[i++] = c;
-		if (j && isspace(c))
-			break;
-		if (!isspace(c))
-			j++;
+	int i=0;
+	Macro *macro;
+	char word[MAX_LINE_LEN];
+
+	if (fscanf(readPtr, " %81s ", word) != 1) 
+		return -1;
+
+	if (macroFlag) {
+		int tempPos;
+		char tempWord[MAX_LINE_LEN];
+
+		macro = newMacro();
+		macro->startPos = ftell(readPtr);
+
+		while (fscanf(readPtr, " %81s ", tempWord)==1 && strcmp(tempWord, "endm"))
+			tempPos = ftell(readPtr);
+
+		macro->endPos = tempPos;
+		if (!insert(hashTable, macro, word))
+			exit(EXIT_FAILURE);
+
+		return fscanAndExpandMacros(readPtr, writePtr, hashTable, 0);
 	}
-	line[i] = '\0';
-	return (!j) ? NULL: line;
+
+	if (!strcmp(word, "macro"))
+		return fscanAndExpandMacros(readPtr, writePtr, hashTable, 1);
+
+	if ((macro = (Macro *) search(hashTable, word))!=NULL)
+		fexpandMacro(readPtr, writePtr, macro);
+	else
+		fputs(word, writePtr);
+
+	fprintRestOfLine(readPtr, writePtr);
+	return fscanAndExpandMacros(readPtr, writePtr, hashTable, 0);
 }
 
 
-void fexpandMacro(FILE *rp, FILE *wp, Macro *macro)
+void fexpandMacro(FILE *readPtr, FILE *writePtr, Macro *macro)
 {
 	int32_t latestReadPos;
-	if (!rp || !wp || !macro)
+
+	if (!readPtr || !writePtr || !macro)
 		return;
-	latestReadPos = ftell(rp);
-	fseek(rp, macro->fStartPos, SEEK_SET);
-	while (ftell(rp) < macro->fEndPos)
-		fputc(fgetc(rp), wp);
-	fseek(rp, latestReadPos, SEEK_SET);
+
+	latestReadPos = ftell(readPtr);
+	fseek(readPtr, macro->startPos, SEEK_SET);
+
+	while (ftell(readPtr) < macro->endPos)
+		fputc(fgetc(readPtr), writePtr);
+
+	fseek(readPtr, latestReadPos, SEEK_SET);
+
 }
 
-uint8_t fscanAndExpandMacros(FILE *rp, FILE *wp, MacroTable *macroTable, uint8_t macroFlag)
-{
-	char word[MAX_LINE_LEN];
-	int16_t i=0;
-	Macro *ptr;
-	if (!fgetWord(word, MAX_LINE_LEN, rp)) {
-		if (feof(rp))
-			return EOF;
-		if (macroFlag)
-			return fscanAndExpandMacros(rp, wp, macroTable, macroFlag);
-	}
-	while (isspace(word[i]))
-			i++;
-	if (macroFlag) {
-		int32_t pos = ftell(rp);
-		if (!word[i])
-			exit(EXIT_FAILURE);
-		ptr = newMacro(&word[i]);
-		ptr->fStartPos = pos;
-		while (!feof(rp) && !strstr(word, "endm")) {
-			pos = ftell(rp);
-			fgetWord(word, MAX_LINE_LEN, rp);
-		}
-		ptr->fEndPos = pos;
-		if (!insert(macroTable, ptr))
-			exit(EXIT_FAILURE);
-		return fscanAndExpandMacros(rp, wp, macroTable, 0);
-	}
-	if (strstr(word, "macro")!=NULL)
-		return fscanAndExpandMacros(rp, wp, macroTable, 1);
-	if ((ptr = search(macroTable, &word[i]))!=NULL)
-		fexpandMacro(rp, wp, ptr);
-	else 
-		fputs(word, wp);
-	fprintRestOfLine(rp, wp);
-	return fscanAndExpandMacros(rp, wp, macroTable, 0);
-}
 
-void fprintRestOfLine(FILE *rp, FILE *wp)
+void fprintRestOfLine(FILE *readPtr, FILE *writePtr)
 {
-	int16_t c;
-	while ((c=fgetc(rp))!=EOF && c!='\n')
-			fputc(c, wp);
+	int c;
+
+	while ((c=fgetc(readPtr))!=EOF && c!='\n')
+			fputc(c, writePtr);
 	if (c=='\n')
-		fputc(c, wp);
+		fputc(c, writePtr);
+
 }
 
-Macro *newMacro(char *text)
+Macro *newMacro()
 {
 	Macro *ptr = NULL;
-	if (!text)
+
+	if(!(ptr = (Macro *) malloc(sizeof(Macro))))
 		return NULL;
-	if(!(ptr = (Macro *)malloc(sizeof(Macro))))
-		return NULL;
-	ptr->key = (char *)malloc(sizeof(char)*(strlen(text)+1));
-	if (!ptr->key) {
-		free(ptr);
-		return NULL;
-	}
-	strcpy(ptr->key, text);
+
+	ptr->startPos = -1;
+	ptr->endPos = -1;
 	return ptr;
 }
 
 void deleteMacro(Macro *macro)
 {
-	if (!macro)
-		return;
-	free(macro->key);
 	free(macro);
 	macro = NULL;
 }

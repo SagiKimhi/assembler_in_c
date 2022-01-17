@@ -22,4 +22,4 @@ $(OBJ):
 	mkdir $@
 
 clean:
-	$(RM) -i $(OBJ)/* $(BIN)
+	$(RM) -r $(OBJ)/*.o $(BIN)
