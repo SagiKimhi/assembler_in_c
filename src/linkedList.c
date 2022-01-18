@@ -78,3 +78,4 @@ void fprintList(FILE *fp, LIST *head)
 		ptr = ptr->next;
 	}
 }
+

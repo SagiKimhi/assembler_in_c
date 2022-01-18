@@ -1,5 +1,4 @@
 #include <libraries.h>
-#include <types.h>
 #include <macro.h>
 #include <hashTable.h>
 
@@ -25,3 +24,4 @@ int main(int argc, char **argv)
 	}
 	return EXIT_SUCCESS;
 }
+

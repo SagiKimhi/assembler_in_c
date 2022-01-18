@@ -29,49 +29,72 @@
 
 void MacroPreproccessor(FILE *read, FILE *write)
 {
-	HashTable *hashTable;
+	HashTable *hashTable = NULL;
+
 	if (!read || !write)
 		return;
-	initTable(hashTable, TABLE_SIZE);
+	if (!(initTable(hashTable, TABLE_SIZE)))
+		return;
+
 	fscanAndExpandMacros(read, write, hashTable, 0);
 	deleteTable(hashTable);
+
 }
 
 int fscanAndExpandMacros(FILE *readPtr, FILE *writePtr, HashTable *hashTable, int macroFlag)
 {
-	int i=0;
 	Macro *macro;
 	char word[MAX_LINE_LEN];
+	char line[MAX_LINE_LEN];
+	int bytesScanned=0,tempPos = ftell(readPtr);
 
-	if (fscanf(readPtr, " %81s ", word) != 1) 
+	if (!fgets(line, MAX_LINE_LEN, readPtr)) 
 		return -1;
 
+	if (sscanf(line, " %s %n", word, &bytesScanned) != 2) {
+		fprintf(writePtr, "%s", line);
+		return fscanAndExpandMacros(readPtr, writePtr, hashTable, macroFlag);
+	}
+
+	if (!macroFlag && !strcmp(word, "macro")) {
+		int temp = 0;
+		if (sscanf(line, " %s %n", word, &temp)==2) {
+			tempPos += (temp+bytesScanned);
+			macroFlag = 1;
+		}
+	}
 	if (macroFlag) {
-		int tempPos;
-		char tempWord[MAX_LINE_LEN];
+		char *tempWord;
 
 		macro = newMacro();
-		macro->startPos = ftell(readPtr);
+		macro->startPos = tempPos;
 
-		while (fscanf(readPtr, " %81s ", tempWord)==1 && strcmp(tempWord, "endm"))
-			tempPos = ftell(readPtr);
+		if (!(tempWord=strstr(line, "endm")))
+			while ((fscanf(readPtr, " %s ", tempWord)==1) && strcmp(tempWord, "endm")) {
+				if(feof(readPtr)) {
+					fprintf(stderr, "Error: reached eof before end of macro definition");
+					return -1;
+				}
+				tempPos=ftell(readPtr);
+			}
+		else
+			tempPos += (tempWord-word);
 
 		macro->endPos = tempPos;
-		if (!insert(hashTable, macro, word))
+
+		if (!insert(hashTable, macro, word)) {
+			fprintf(stderr, "Error: macro inserion failed. macro name: %s\n", word);
 			exit(EXIT_FAILURE);
+		}
 
 		return fscanAndExpandMacros(readPtr, writePtr, hashTable, 0);
 	}
 
-	if (!strcmp(word, "macro"))
-		return fscanAndExpandMacros(readPtr, writePtr, hashTable, 1);
-
 	if ((macro = (Macro *) search(hashTable, word))!=NULL)
 		fexpandMacro(readPtr, writePtr, macro);
 	else
-		fputs(word, writePtr);
+		fprintf(writePtr, "%s", line);
 
-	fprintRestOfLine(readPtr, writePtr);
 	return fscanAndExpandMacros(readPtr, writePtr, hashTable, 0);
 }
 
@@ -93,18 +116,6 @@ void fexpandMacro(FILE *readPtr, FILE *writePtr, Macro *macro)
 
 }
 
-
-void fprintRestOfLine(FILE *readPtr, FILE *writePtr)
-{
-	int c;
-
-	while ((c=fgetc(readPtr))!=EOF && c!='\n')
-			fputc(c, writePtr);
-	if (c=='\n')
-		fputc(c, writePtr);
-
-}
-
 Macro *newMacro()
 {
 	Macro *ptr = NULL;
@@ -120,5 +131,5 @@ Macro *newMacro()
 void deleteMacro(Macro *macro)
 {
 	free(macro);
-	macro = NULL;
 }
+

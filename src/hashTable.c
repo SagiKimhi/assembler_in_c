@@ -23,8 +23,8 @@ static size_t setTableSize(HashTable *hashTable, size_t size)
 	if (!hashTable || size <= hashTable->tableSize)
 		return 0;
 
-	tPtr = (void **) realloc(hashTable->table, size * sizeof(void *))
-	kPtr = (char **) realloc(hashTable->table, size * sizeof(char *))
+	tPtr = (void **) realloc(hashTable->table, size * sizeof(void *));
+	kPtr = (char **) realloc(hashTable->keys, size * sizeof(char *));
 	
 	if (!tPtr || !kPtr)
 		return 0;
@@ -42,17 +42,29 @@ static size_t setTableSize(HashTable *hashTable, size_t size)
 	return hashTable->tableSize;
 }
 
+HashTable *newHashTable()
+{
+	HashTable *newTable = (HashTable *) malloc(sizeof(HashTable));
+	if (!newTable)
+		return NULL;
+
+	newTable->table = NULL;
+	newTable->keys = NULL;
+	newTable->tableSize = 0;
+	newTable->mCount = 0;
+
+	return newTable;
+}
+
 /*	newTable: initates a void Table and sets its size to the size given as argument.
 	returns 1 upon success, or 0 if the pointer is null or not enough memory could be allocated. */
 int initTable(HashTable *hashTable, size_t size)
 {
-	if (!hashTable)
-		return 0;
+	if (hashTable != NULL)
+		deleteTable(hashTable);
 
-	hashTable->table = NULL;
-	hashTable->keys = NULL;
-	hashTable->tableSize=0;
-	hashTable->mCount=0;
+	if (!(hashTable = newHashTable()))
+			return 0;
 
 	if (!setTableSize(hashTable, size))
 		return 0;
@@ -65,7 +77,7 @@ static uint32_t hash(char *key)
 {
 	uint32_t hash = 5381;
 	int32_t c;
-	while (c = *key++)
+	while ((c = *key++))
 		hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 	return hash;
 }
@@ -122,7 +134,7 @@ static HashTable *rehash(HashTable *hashTable)
 		return NULL;
 
 	for (index=0; index<hashTable->tableSize; index++)
-		insert(temp, hashTable->table[index]);
+		insert(temp, hashTable->table[index], hashTable->keys[index]);
 
 	deleteTable(hashTable);
 	hashTable = temp;
@@ -139,7 +151,7 @@ void *insert(HashTable *hashTable, void *ptr, char *key)
 		return NULL;
 
 	if (!checkLoadFact(hashTable))
-		if(!rehash(hashTable) && hashTable->mCount>==hashTable->tableSize)
+		if(!rehash(hashTable) && hashTable->mCount>=hashTable->tableSize)
 			return NULL;
 
 	hkey = hash(key);
@@ -147,7 +159,7 @@ void *insert(HashTable *hashTable, void *ptr, char *key)
 	stepVal = hash2(hkey, hashTable->tableSize);
 	fact = 1;
 
-	while (hashTable->table[index] != NULL )
+	while (hashTable->keys[index] != NULL)
 		index = doubleHash(startVal, stepVal, fact++, hashTable->tableSize);
 
 	if (!(hashTable->keys[index] = malloc(strlen(key)+1)))
@@ -197,5 +209,5 @@ void deleteTable(HashTable *hashTable)
 	free(hashTable->table);
 	free(hashTable->keys);
 	free(hashTable);
-	hashTable = NULL;
 }
+

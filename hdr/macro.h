@@ -16,3 +16,4 @@ void fprintRestOfLine(FILE *readPtr, FILE *writePtr);
 void deleteMacro(Macro *macro);
 Macro *newMacro();
 #endif
+

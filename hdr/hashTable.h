@@ -16,7 +16,7 @@ typedef struct hash_table {
 
 /*	newTable: initates a Macro Table and sets its size to the size given as argument.
 	returns 1 upon success, or 0 if the pointer is null or not enough memory could be allocated. */
-uint8_t initTable(HashTable *macroTable, size_t size);
+int initTable(HashTable *macroTable, size_t size);
 
 /* 	insert: inserts a macro to the macro hash table. returns a pointer
 	to the macro upon success or NULL upon failure. */
