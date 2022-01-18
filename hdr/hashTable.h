@@ -14,6 +14,7 @@ typedef struct hash_table {
 	size_t mCount;
 } HashTable;
 
+HashTable *newHashTable();
 /*	newTable: initates a Macro Table and sets its size to the size given as argument.
 	returns 1 upon success, or 0 if the pointer is null or not enough memory could be allocated. */
 int initTable(HashTable *macroTable, size_t size);

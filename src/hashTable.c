@@ -42,34 +42,37 @@ static size_t setTableSize(HashTable *hashTable, size_t size)
 	return hashTable->tableSize;
 }
 
-HashTable *newHashTable()
-{
-	HashTable *newTable = (HashTable *) malloc(sizeof(HashTable));
-	if (!newTable)
-		return NULL;
-
-	newTable->table = NULL;
-	newTable->keys = NULL;
-	newTable->tableSize = 0;
-	newTable->mCount = 0;
-
-	return newTable;
-}
-
 /*	newTable: initates a void Table and sets its size to the size given as argument.
 	returns 1 upon success, or 0 if the pointer is null or not enough memory could be allocated. */
 int initTable(HashTable *hashTable, size_t size)
 {
-	if (hashTable != NULL)
-		deleteTable(hashTable);
+	if (!hashTable)
+		return 0;
 
-	if (!(hashTable = newHashTable()))
-			return 0;
+	hashTable->table = NULL;
+	hashTable->keys = NULL;
+	hashTable->tableSize = 0;
+	hashTable->mCount = 0;
 
 	if (!setTableSize(hashTable, size))
 		return 0;
 
 	return 1;
+}
+
+HashTable *newHashTable()
+{
+	HashTable *newTable = (HashTable *) malloc(sizeof(HashTable));
+
+	if (!newTable)
+		return NULL;
+
+	if (!initTable(newTable, TABLE_SIZE)) {
+		fprintf(stderr, "Error: initTable for new table");
+		return NULL;
+	}
+
+	return newTable;
 }
 
 /* hash: returnes a hash value for the given text key argument. */
