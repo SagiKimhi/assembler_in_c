@@ -1,7 +1,12 @@
 #ifndef _MACRO_H
 #define _MACRO_H
 #include <libraries.h>
+
+#if defined _HASH_TABLE_H
 #include <hashTable.h>
+#elif defined _LINKED_LIST_H
+#include <linkedList.h>
+#endif
 
 typedef struct _macro{
 	int startPos;

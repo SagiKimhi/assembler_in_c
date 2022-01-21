@@ -1,7 +1,6 @@
-#include <libraries.h>
-
 #ifndef _HASH_TABLE_H
 #define _HASH_TABLE_H
+#include <libraries.h>
 
 #define TABLE_SIZE 17
 #define MAX_LOAD_FACTOR 0.75

@@ -1,81 +1,130 @@
 #include <linkedList.h>
 
-/* 	newElement: Returns a pointer to a new LIST element, or null if not enough
+/* 	newElement: Returns a pointer to a new Node element, or null if not enough
 	space could be allocated in memory. */
-LIST *newElement(char *text)
+Node *newNode()
 {
-	LIST *newp = NULL;
-	if (!text)
+	Node *newp = NULL;
+
+	if (!(newp = (Node *) malloc(sizeof(Node))))
 		return NULL;
-	if (!(newp = (LIST *)malloc(sizeof(LIST))))
-		return NULL;
-	if (!(newp->text = (char *)malloc(strlen(text)+1))) {
-		free(newp);
-		return NULL;
-	}
-	strcpy(newp->text, text);
+
+	newp->data = NULL;
+	newp->dataSize = 0;
 	newp->next = NULL;
+
 	return newp;
 }
 
-/* deleteElement: removes an element from the list */
-LIST *deleteElement(LIST *head, LIST *element)
+List *newList()
 {
-	LIST *ptr;
-	if (!head || !element)
-		return head;
-	if (head==element){
-		head = head->next;
-		free(element->text);
-		free(element);
-		return head;
-	}
-	ptr=head;
-	while (ptr && ptr->next!=element) 
-		ptr = ptr->next;
-	if (!ptr)
+	List *list = NULL;
+
+	if (!(list = (List *) malloc(sizeof(List))))
 		return NULL;
-	ptr->next=element->next;
-	free(element->text);
-	free(element);
-	return head;
+
+	list->head = NULL;
+	list->tail = NULL;
+
+	return list;
+}
+
+/* deleteNode: removes an element from the list */
+void deleteNode(Node *node)
+{
+	if (!node)
+		return;
+	free(node->data);
+	free(node);
 }
 
 /*	deleteList: deletes the entire list */
-void deleteList(LIST *head)
+void deleteList(List *list)
 {
-	while (deleteElement(head, head))
-		;
+	Node *temp;
+	if (!list)
+		return;
+	while (list->head != NULL) {
+		temp = list->head;
+		list->head = temp->next;
+		deleteNode(temp);
+	}
+	free(list);
 }
 
 /* addToStart: add an element to the begining of the list. */
-LIST *addToStart(LIST *head, LIST *element)
+Node *insertData(Node *node, const void *data, size_t dataSize)
 {
-	if (!head || !element)
-		return head;
-	element->next=head;
-	return element;
+	if (!node || !data || !dataSize)
+		return NULL;
+	
+	if (!(node->data = realloc(node->data, dataSize)))
+		return NULL;
+
+	memmove(node->data, data, dataSize);
+	node->dataSize = dataSize;
+
+	return node;
 }
 
-/* addToEnd: add an element to the end of the list. */
-LIST *addToEnd(LIST *tail, LIST *element)
+List *addToFront(List *list, const void *data, size_t dataSize)
 {
-	if (!tail || !element)
-		return tail;
-	tail->next = element;
-	element->next = NULL;
-	return element;
+	Node *newp = NULL;
+
+	if (!list)
+		return NULL;
+	
+	if (!(newp = newNode()) || !insertData(newp, data, dataSize))
+		return NULL;
+
+	newp->next = list->head;
+	list->head = newp;
+
+	return list;
+}
+
+List *addToEnd(List *list, const void *data, size_t dataSize)
+{
+	Node *newp = NULL;
+
+	if (!list)
+		return NULL;
+	
+	if (!(newp = newNode()) || !insertData(newp, data, dataSize))
+		return NULL;
+
+	list->tail->next = newp;
+	list->tail = newp;
+
+	return list;
+}
+
+void *search(List *list, const void *data, size_t dataSize)
+{
+	Node *ptr=NULL;
+
+	if (!list)
+		return NULL;
+
+	ptr = list->head;
+	while (ptr != NULL) {
+		if (ptr->dataSize == dataSize && !memcmp(ptr->data, data, dataSize))
+			return ptr;
+	}
+	return NULL;
 }
 
 /* fprintList: prints the text contents of the list's elements onto a file. */
-void fprintList(FILE *fp, LIST *head)
+void fprintList(FILE *fp, List *list, void (*fprintData)(void *))
 {
-	LIST *ptr = head;
-	if (!fp)
+	Node *ptr=NULL;
+
+	if (!fp || !list)
 		return;
-	while (ptr) {
-		fprintf(fp, "%s", ptr->text);
+	
+	ptr = list->head;
+	while (ptr != NULL) {
+		(*fprintData)(ptr->data);
 		ptr = ptr->next;
 	}
 }
-
