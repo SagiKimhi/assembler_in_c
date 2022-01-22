@@ -10,7 +10,13 @@ SRCS=$(wildcard $(SRC)/*.c)
 OBJS=$(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(SRCS))
 BIN=asmake
 
-all: $(BIN)
+all: withList
+
+withList: CFLAGS+=-D__USE_LIST__
+withList: $(BIN)
+
+withTable: CFLAGS+=-D__USE_TABLE__
+withTable: $(BIN)
 
 $(BIN): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $@
@@ -22,4 +28,4 @@ $(OBJ):
 	mkdir $@
 
 clean:
-	$(RM) -r $(OBJ)/*.o $(BIN)
+	$(RM) $(OBJ)/*.o $(BIN) withList withTable

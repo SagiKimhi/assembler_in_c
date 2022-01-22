@@ -16,25 +16,22 @@ static size_t getNextPrime(size_t prime)
 	table is returned. */
 static size_t setTableSize(HashTable *hashTable, size_t size)
 {
-	void **tPtr; /* table pointer */
-	char **kPtr; /* keys pointer */
-	size_t i, oldSize;
+	size_t i;
 
 	if (!hashTable || size <= hashTable->tableSize)
 		return 0;
 
-	tPtr = (void **) realloc(hashTable->table, size * sizeof(void *));
-	kPtr = (char **) realloc(hashTable->keys, size * sizeof(char *));
+	hashTable->table = (void **) malloc(size * sizeof(void *));
+	hashTable->keys = (char **) malloc(size * sizeof(char *));
 	
-	if (!tPtr || !kPtr)
+	if (!hashTable->table || !hashTable->keys) {
+		deleteTable(hashTable);
 		return 0;
+	}
 
-	hashTable->table = tPtr;
-	hashTable->keys = kPtr;
-	oldSize = hashTable->tableSize;
 	hashTable->tableSize = size;
 
-	for (i=oldSize; i < hashTable->tableSize; i++) {
+	for (i=0; i<hashTable->tableSize; i++) {
 		hashTable->table[i] = NULL;
 		hashTable->keys[i] = NULL;
 	}
@@ -60,15 +57,16 @@ int initTable(HashTable *hashTable, size_t size)
 	return 1;
 }
 
-HashTable *newHashTable()
+HashTable *newHashTable(size_t size)
 {
 	HashTable *newTable = (HashTable *) malloc(sizeof(HashTable));
 
 	if (!newTable)
 		return NULL;
 
-	if (!initTable(newTable, TABLE_SIZE)) {
-		fprintf(stderr, "Error: initTable for new table");
+	if (!initTable(newTable, size)) {
+		fprintf(stderr, "Error: Unable to create a new table");
+		deleteTable(newTable);
 		return NULL;
 	}
 
@@ -121,27 +119,28 @@ static int32_t checkLoadFact(HashTable *hashTable)
 /* rehash: rehashes the hashTable onto a new larger HashTable, maintaining a maximum
 	load factor of the defined REHASH_LOAD_FACTOR. returns a pointer to the new table upon success,
 	or NULL pointer if the function failed for any reason.  */
-static HashTable *rehash(HashTable *hashTable)
+static HashTable *rehash(HashTable **hashTable)
 {
-	HashTable *temp = (HashTable *) malloc(sizeof(HashTable));
+	HashTable *temp;
 	size_t newPrime, index;
 
-	if (!temp)
-		return NULL;
-
-	newPrime = hashTable->tableSize;
-	while (((float)hashTable->mCount)/newPrime > REHASH_LOAD_FACTOR)
+	newPrime = (*hashTable)->tableSize;
+	while (((float)(*hashTable)->mCount)/newPrime > REHASH_LOAD_FACTOR)
 		newPrime = getNextPrime(newPrime);
 
-	if (!initTable(temp, newPrime))
+	if (!(temp = newHashTable(newPrime)))
 		return NULL;
 
-	for (index=0; index<hashTable->tableSize; index++)
-		insert(temp, hashTable->table[index], hashTable->keys[index]);
+	for (index=0; index<(*hashTable)->tableSize; index++) {
+		if (!(*hashTable)->table[index])
+			continue;
+		insert(temp, (*hashTable)->table[index], (*hashTable)->keys[index]);
+		(*hashTable)->table[index] = NULL;
+	}
 
-	deleteTable(hashTable);
-	hashTable = temp;
-	return hashTable;
+	deleteTable(*hashTable);
+	hashTable = &temp;
+	return *hashTable;
 }
 
 /* 	insert: inserts a macro to the macro hash table. returns a pointer
@@ -150,11 +149,11 @@ void *insert(HashTable *hashTable, void *ptr, char *key)
 {
 	uint32_t hkey, startVal, stepVal, fact, index;
 
-	if (!hashTable || !ptr || !key || (search(hashTable, key)!=NULL))
+	if (!hashTable || !ptr || !key || search(hashTable, key)!=NULL)
 		return NULL;
 
 	if (!checkLoadFact(hashTable))
-		if(!rehash(hashTable) && hashTable->mCount>=hashTable->tableSize)
+		if(!rehash(&hashTable) && hashTable->mCount>=hashTable->tableSize)
 			return NULL;
 
 	hkey = hash(key);
@@ -203,12 +202,13 @@ void *search(HashTable *hashTable, char *key)
 void deleteTable(HashTable *hashTable)
 {
 	uint32_t index;
-	for (index = 0; index < hashTable->tableSize; index++) {
-		if (!hashTable->table[index])
-			continue;
-		free(hashTable->table[index]);
-		free(hashTable->keys[index]);
-	}
+	
+	if (hashTable->table != NULL)
+		for (index = 0; index<hashTable->tableSize; index++) {
+			free(hashTable->table[index]);
+			free(hashTable->keys[index]);
+		}
+
 	free(hashTable->table);
 	free(hashTable->keys);
 	free(hashTable);
