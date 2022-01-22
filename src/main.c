@@ -4,7 +4,7 @@
 #define FILE_NAME_MAX 1024
 int main(int argc, char **argv)
 {
-	char writeName[FILE_NAME_MAX];
+	char readName[FILE_NAME_MAX], writeName[FILE_NAME_MAX];
 	int count=1;
 
 	if (argc == 1) {
@@ -15,12 +15,13 @@ int main(int argc, char **argv)
 		FILE *read, *write;
 		
 		read = write = NULL;
-		sprintf(writeName, "tests/res_%d.as", count);
-		read = fopen(argv[argc-1], "r");
+		sscanf(argv[argc-1], " %s", readName);
+		sprintf(writeName, "res.as");
+		read = fopen(readName, "r");
 		write = fopen(writeName, "w");
 		
 		if (!read || !write) {
-			fprintf(stderr, "Error!\nInvalid file name: %s", argv[argc-1]);
+			fprintf(stderr, "Error: invalid file name: %s\n", readName);
 			return EXIT_FAILURE;
 		}
 		

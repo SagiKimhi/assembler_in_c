@@ -8,7 +8,7 @@ int main(int argc, char **argv)
     const unsigned int macros = atoi(argv[argc-1]);
     
     if (macros<=0) {
-        fprintf(stderr, "Argument has to be a positive integer. Aborting...");
+        fprintf(stderr, "Argument %d is not a positive integer. Aborting...\n", macros);
         return EXIT_FAILURE;
     }
 

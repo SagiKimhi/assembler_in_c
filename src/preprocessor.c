@@ -46,7 +46,7 @@ static void MacroPreproccessor_table(FILE *read, FILE *write)
 	}
 
 	fscanAndExpandMacros_table(read, write, hashTable, 0);
-	deleteTable(hashTable);
+	deleteTable(hashTable, 1);
 }
 
 static int fscanAndExpandMacros_table(FILE *readPtr, FILE *writePtr, HashTable *hashTable, int macroFlag)
