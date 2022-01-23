@@ -46,7 +46,7 @@ static void MacroPreproccessor_table(FILE *read, FILE *write)
 	}
 
 	fscanAndExpandMacros_table(read, write, hashTable, 0);
-	deleteTable(hashTable, 1);
+	deleteTable(hashTable, &deleteMacro);
 }
 
 static int fscanAndExpandMacros_table(FILE *readPtr, FILE *writePtr, HashTable *hashTable, int macroFlag)
@@ -85,7 +85,7 @@ static int fscanAndExpandMacros_table(FILE *readPtr, FILE *writePtr, HashTable *
 
 		macro->endPos = tempPos;
 
-		if (!insert(hashTable, macro, word)) {
+		if (!insert(hashTable, word, macro)) {
 			fprintf(stderr, "Error: macro inserion failed. macro name: %s\n", word);
 			exit(EXIT_FAILURE);
 		}
@@ -93,7 +93,7 @@ static int fscanAndExpandMacros_table(FILE *readPtr, FILE *writePtr, HashTable *
 		return fscanAndExpandMacros_table(readPtr, writePtr, hashTable, 0);
 	}
 
-	if ((macro = (Macro *) search(hashTable, word))!=NULL)
+	if ((macro = (Macro *)search(hashTable, word))!=NULL)
 		fprintMacro(readPtr, writePtr, macro);
 	else
 		fprintf(writePtr, "%s", line);

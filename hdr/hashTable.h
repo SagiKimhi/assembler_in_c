@@ -1,22 +1,22 @@
 #ifndef _HASH_TABLE_H
 #define _HASH_TABLE_H
 #include <libraries.h>
+#include <bucket.h>
 
 #ifndef TABLE_SIZE
 #define TABLE_SIZE 17
 #endif
 
 typedef struct hash_table {
-	char **keys;
-	void **table;
-	size_t tableSize;
+	Bucket **bucket;
 	size_t mCount;
+	size_t tableSize;
 } HashTable;
 
 HashTable *newHashTable(int size);
-void *insert(HashTable *hashTable, void *ptr, char *key);
 void *search(HashTable *hashTable, char *key);
-void deleteTable(HashTable *hashTable, int deleteData);
+void *insert(HashTable *hashTable, char *key, void *data);
+void deleteTable(HashTable *hashTable, void (*deleteData)());
 
 #endif
 

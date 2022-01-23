@@ -1,26 +1,24 @@
 #include <hashTable.h>
 
 const float MAX_LOAD_FACTOR = 0.75;
-const float OPTIMAL_LOAD_FACTOR = 0.25;
+const float OPTIMAL_LOAD_FACTOR = 0.15;
 
 /* newHashTable: returns a pointer to a new allocated HashTable or NULL upon failure */
 HashTable *newHashTable(int size)
 {
 	HashTable *newTable;
+	int i;
 
 	if (!(newTable = (HashTable *) malloc(sizeof(HashTable))))
 		return NULL;
 
-	if (!(newTable->table = (void **) malloc((sizeof(void *) * size)))) {
+	if (!(newTable->bucket = (Bucket **) malloc(sizeof(Bucket *) * size))) {
 		free(newTable);
 		return NULL;
 	}
 
-	if (!(newTable->keys = (char **) malloc((sizeof(char *) * size)))) {
-		free(newTable->table);
-		free(newTable);
-		return NULL;
-	}
+	for (i=0; i<size; i++)
+		newTable->bucket[i]=NULL;
 
 	newTable->tableSize = size;
 	newTable->mCount = 0;
@@ -30,7 +28,7 @@ HashTable *newHashTable(int size)
 
 /*	getNextPrime: returns a positive prime number larger than the argument.
 	If the argument is not a prime number the behavior us undefined. */
-static size_t getNextPrime(size_t prime)
+static int getNextPrime(size_t prime)
 {
 	if (((prime+1)%6) == 0)
 		return (((prime+1)/6+1)*6+1);
@@ -69,7 +67,7 @@ static uint32_t doubleHash(uint32_t h1, uint32_t h2, uint32_t fact, size_t table
 
 /* 	checkLoadFact: returns 1 if the table's load factor is below the defined MAX_LOAD_FACTOR,
 	returns 0 otherwise. Returns -1 if the HashTable pointer argument is NULL. */
-static int32_t checkLoadFact(HashTable *hashTable)
+static int checkLoadFact(HashTable *hashTable)
 {
 	float members = hashTable->mCount;
 
@@ -81,56 +79,61 @@ static int32_t checkLoadFact(HashTable *hashTable)
 
 static HashTable *rehash(HashTable *hashTable)
 {
-	HashTable *temp;
-	int32_t newPrime, i;
+	Bucket **temp, **oldBucket;
 	float members = hashTable->mCount;
-
-	newPrime = hashTable->tableSize;
+	int i, oldSize, newPrime = getNextPrime(hashTable->tableSize);
 
 	while (members/newPrime > OPTIMAL_LOAD_FACTOR)
 		newPrime = getNextPrime(newPrime);
 
-	if (!(temp = newHashTable(newPrime)))
+	if (!(temp = (Bucket **) malloc(sizeof(Bucket)*newPrime)))
 		return NULL;
+	
+	for (i=0; i<newPrime; i++)
+		temp[i] = NULL;
 
-	for (i=0; i<hashTable->tableSize; i++) {
-		if (!hashTable->table[i])
+	oldSize = hashTable->tableSize;
+	oldBucket = hashTable->bucket;
+	hashTable->tableSize = newPrime;
+	hashTable->bucket = temp;
+	hashTable->mCount = 0;
+
+	for (i=0; i<oldSize; i++) {
+		if (!oldBucket[i])
 			continue;
-		insert(temp, hashTable->table[i], hashTable->keys[i]);
-		hashTable->table[i] = NULL;
-		free(hashTable->keys[i]);
+		insert(hashTable, oldBucket[i]->key, oldBucket[i]->data);
+		deleteBucket(oldBucket[i], NULL);
 	}
 
-	deleteTable(hashTable, 0);
-	return temp;
+	free(oldBucket);
+
+	return hashTable;
 }
 
-void *insert(HashTable *hashTable, void *ptr, char *key)
+void *insert(HashTable *hashTable, char *key, void *data)
 {
 	uint32_t hkey, startVal, stepVal, fact, index;
 
-	if (!hashTable || !ptr || !key || search(hashTable, key)!=NULL)
+	if (!hashTable || !data || !key || search(hashTable, key)!=NULL)
 		return NULL;
 
-	if (!checkLoadFact(hashTable) && !(hashTable = rehash(hashTable)))
-			return NULL;
+	if (!checkLoadFact(hashTable) && !rehash(hashTable))
+		return NULL;
 
 	hkey = hash(key);
 	index = startVal = hash1(hkey, hashTable->tableSize);
 	stepVal = hash2(hkey, hashTable->tableSize);
 	fact = 1;
 
-	while (hashTable->keys[index] != NULL)
+	while (hashTable->bucket[index] != NULL)
 		index = doubleHash(startVal, stepVal, fact++, hashTable->tableSize);
 
-	if (!(hashTable->keys[index] = malloc(strlen(key)+1)))
+	if (!(hashTable->bucket[index] = newBucket(key, data)))
 		return NULL;
 
 	hashTable->mCount++;
-	strcpy(hashTable->keys[index], key);
-	hashTable->table[index] = ptr;
 
-	return hashTable->table[index];
+	return hashTable->bucket[index]->data;
 }
 
 void *search(HashTable *hashTable, char *key)
@@ -145,12 +148,12 @@ void *search(HashTable *hashTable, char *key)
 	stepVal = hash2(hVal, hashTable->tableSize);
 	fact = 1;
 
-	for (index = startVal; hashTable->table[index]!=NULL; ) {
+	for (index = startVal; hashTable->bucket[index]!=NULL; ) {
 		if (fact > 1 && index == startVal)
 			return NULL;
 
-		if (!strcmp(key, hashTable->keys[index]))
-			return hashTable->table[index];
+		if (!strcmp(hashTable->bucket[index]->key, key))
+			return hashTable->bucket[index]->data;
 
 		index = doubleHash(startVal, stepVal, fact++, hashTable->tableSize);
 	}
@@ -158,25 +161,20 @@ void *search(HashTable *hashTable, char *key)
 }
 
 /* deleteTable: free the HashTable from memory. */
-void deleteTable(HashTable *hashTable, int deleteData)
+void deleteTable(HashTable *hashTable, void (*deleteData)())
 {
 	uint32_t i;
-	
-	if (!deleteData) {
-		free(hashTable->table);
-		free(hashTable->keys);
-		free(hashTable);
+
+	if (!hashTable)
 		return;
-	}
-
+	
 	for (i=0; i<hashTable->tableSize; i++) {
-		if (!hashTable->table[i])
+		if (!hashTable->bucket[i])
 			continue;
-		free(hashTable->table[i]);
-		free(hashTable->keys[i]);
+		deleteBucket(hashTable->bucket[i], deleteData);
 	}
-
-	free(hashTable->table);
-	free(hashTable->keys);
+	
+	free(hashTable->bucket);
+	free(hashTable);
 }
 
