@@ -18,6 +18,9 @@ withList: $(BIN)
 withTable: CFLAGS+=-D__USE_TABLE__
 withTable: $(BIN)
 
+withTree: CFLAGS+=-D__USE_TREE__
+withTree: $(BIN)
+
 $(BIN): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $@
 
