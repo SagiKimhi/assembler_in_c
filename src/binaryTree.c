@@ -75,10 +75,10 @@ void *treeSearch(TreeNode *root, char *key)
 static void *deleteTree_rec(TreeNode *root)
 {
 	if (root->leftChild != NULL)
-		return deleteTree_rec(root->leftChild);
+		root->leftChild = deleteTree_rec(root->leftChild);
 
 	if (root->rightChild != NULL)
-		return deleteTree_rec(root->rightChild);
+		root->rightChild = deleteTree_rec(root->rightChild);
 
 	free(root->data);
 	free(root->key);
