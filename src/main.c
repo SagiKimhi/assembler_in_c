@@ -1,37 +1,37 @@
+#include <errors.h>
 #include <libraries.h>
 #include <preprocessor.h>
 
-#define FILE_NAME_MAX 1024
 int main(int argc, char **argv)
 {
-	char readName[FILE_NAME_MAX], writeName[FILE_NAME_MAX];
-	int count=1;
+	/* Variable initialization */
+	char filename[FILENAME_MAX] = {0};
+	FILE *wFilePtr, *rFilePtr;
+	int arg;
 
-	if (argc == 1) {
-		fprintf(stderr, "Error!\nPlease provide the names of the files when starting the program");
-		return EXIT_FAILURE;
-	}
-	while (argc>1) {
-		FILE *read, *write;
-		
-		read = write = NULL;
-		sscanf(argv[argc-1], " %s", readName);
-		sprintf(writeName, "res.as");
-		read = fopen(readName, "r");
-		write = fopen(writeName, "w");
-		
-		if (!read || !write) {
-			fprintf(stderr, "Error: invalid file name: %s\n", readName);
-			return EXIT_FAILURE;
-		}
-		
-		MacroPreproccessor(read, write);
-		fclose(read);
-		fclose(write);
-		argc--;
-		count++;
+	if (argc == 1)
+		EXIT_ERROR(MISSING_ARGUMENTS, "");
+
+	/* Preprocessor Stage */
+	for (arg = 1; arg < argc; arg++) {
+		strcpy(filename, argv[arg]);
+		strcat(filename, ".as"); /* Add the .as prefix to the filename */
+
+		if (!(rFilePtr = fopen(filename, "r")))
+			EXIT_ERROR(INVALID_FILE_NAME, filename);
+
+		filename[strlen(filename)-1] = 'm'; /* replaces the ".as" file postifix to ".am" */
+
+		if (!(wFilePtr = fopen(filename, "w")))
+			EXIT_ERROR(UNABLE_TO_OPEN_FILE, "");
+
+		macroPreprocessor(rFilePtr, wFilePtr);
+		fclose(rFilePtr);
+		fclose(wFilePtr);
 	}
 
-	return EXIT_SUCCESS;
+	
+
+	return 0;
 }
 

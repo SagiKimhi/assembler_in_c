@@ -46,7 +46,7 @@ TreeNode *addTreeNode(TreeNode *root, char *key, void *data)
 		return (root = newTreeNode(key, data));
 
 	if (!(compare = strcmp(root->key, key)))
-		return NULL;
+		return root;
 
 	if (compare<0)
 		root->leftChild = addTreeNode(root->leftChild, key, data);

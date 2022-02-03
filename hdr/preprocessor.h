@@ -9,6 +9,8 @@
 #define USE_LIST 0
 #define USE_TABLE 0
 #define USE_TREE 0
+#define START_OF_MACRO_DEFINITION "macro"
+#define END_OF_MACRO_DEFINITION "endm"
 
 #ifdef __USE_LIST__
 #undef USE_LIST
@@ -23,6 +25,6 @@
 #error "No preprocessor data structure defined. Please define either __USE_LIST__ or __USE_TABLE__ in your makefile."
 #endif
 
-void MacroPreproccessor(FILE *read, FILE *write);
+void macroPreprocessor(FILE *read, FILE *write);
 
 #endif
