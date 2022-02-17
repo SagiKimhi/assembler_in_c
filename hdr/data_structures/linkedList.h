@@ -1,7 +1,7 @@
 #ifndef _LINKED_LIST_H
 #define _LINKED_LIST_H
 #include <libraries.h>
-#include <node.h>
+#include <data_structures/node.h>
 
 typedef struct list {
 	Node *head, *tail;

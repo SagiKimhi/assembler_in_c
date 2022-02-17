@@ -1,4 +1,4 @@
-#include <binaryTree.h>
+#include <data_structures/binaryTree.h>
 
 Tree *newTree()
 {

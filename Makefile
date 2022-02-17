@@ -1,26 +1,63 @@
 # ---------------------------------------------
-#  Variables:
-#  --------------------------------------------
+#  Makefile Variables:
+# ---------------------------------------------
+
 # Compiler
 CC=gcc
-# Flags
+
+# Flags Variables
 CFLAGS=-ansi -pedantic -g -Wall
 OFLAGS=-c
-LIB=-I$(HDR)
-# Directories
-HDR=hdr
-SRC=src
-OBJ=obj
-# Files
-SRCS=$(wildcard $(SRC)/*.c)
-OBJS=$(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(SRCS))
+
+# Final executable/binary
 BIN=asmake
 
+# Directory Variables
+PROJDIR ::= $(realpath $(CURDIR))
+HEADERDIR ::= $(PROJDIR)/hdr
+SOURCEDIR ::= $(PROJDIR)/src
+OBJECTDIR ::= $(PROJDIR)/obj
+
+# Create a list of subdirectories
+SUBDIRS = data_structures
+HEADERDIRS = $(HEADERDIR) $(foreach dir, $(SUBDIRS), $(addprefix $(HEADERDIR)/, $(dir)))
+SOURCEDIRS = $(SOURCEDIR) $(foreach dir, $(SUBDIRS), $(addprefix $(SOURCEDIR)/, $(dir)))
+OBJECTDIRS = $(OBJECTDIR) $(foreach dir, $(SUBDIRS), $(addprefix $(OBJECTDIR)/, $(dir)))
+
+# Search Path Variables
+VPATH = $(SOURCEDIRS)
+INCLUDES = $(foreach dir, $(HEADERDIRS), $(addprefix -I, $(dir)))
+
+# Files Variables
+SOURCES = $(foreach dir,$(SOURCEDIRS),$(wildcard $(dir)/*.c))
+OBJECTS ::= $(subst $(SOURCEDIR),$(OBJECTDIR),$(SOURCES:.c=.o))
+
+# Useful Variables
+SEP=/
+RM = rm -rf
+MKDIR = mkdir -p
+
 # ---------------------------------------------
-#  Compilation:
-#  --------------------------------------------
+
+# Remove spaces after seperator
+PSEP = $(strip $(SEP))
+
+# Defines a function that will generate each rule
+define generateRules
+$(1)/%.o: %.c
+	@echo Building $$@
+	$$(CC) $$(CFLAGS) $$(OFLAGS) $$(INCLUDES) -o $$(subst /,$$(PSEP),$$@) $$(subst /,$$(PSEP),$$<) -MMD
+endef
+
+
+# ---------------------------------------------
+#  Compilation options:
+# ---------------------------------------------
+
+.PHONY: all clean directories
+
 # Default binary compilation method
-all: withTree
+all: directories withTree
 
 # The program's data structure of
 # choice would be a Linked List structure
@@ -37,24 +74,37 @@ withTable: $(BIN)
 withTree: CFLAGS+=-D__USE_TREE__
 withTree: $(BIN)
 
+# ---------------------------------------------
+
+
+# ---------------------------------------------
+#  Actual Compilation:
+# ---------------------------------------------
+
 # Creation of binary file
-$(BIN): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $@
+$(BIN): $(OBJECTS)
+	echo Linking $@
+	$(CC) $(CFLAGS) $(OBJECTS) -o $(BIN)
 
-# Creation of object files
-$(OBJ)/%.o: $(SRC)/%.c
-	$(CC) $(CFLAGS) $(OFLAGS) $< -o $@ $(LIB)
+# Creation of object files (Generate rules)
+$(foreach dir, $(OBJECTDIRS), $(eval $(call generateRules, $(dir))))
 
-# Creates an object directory to store object files
-# no operation is done if one already exists
-$(OBJS):
-	mkdir -p $(OBJ)
+# Creates a directory for storing object files
+directories:
+	$(MKDIR) $(subst /,$(PSEP),$(OBJECTDIRS))
+# ---------------------------------------------
+
+
+# ---------------------------------------------
+#  Cleanup:
+# ---------------------------------------------
 
 # Removes object files and executable/binary file
 clean:
-ifdef OBJ
-	$(RM) $(OBJ)/*.o
+ifdef OBJECTDIRS
+	$(RM) $(subst /, $(PSEP), $(OBJECTDIRS))
 endif
 ifdef BIN
 	$(RM) $(BIN)
 endif
+# ---------------------------------------------

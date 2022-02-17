@@ -1,7 +1,7 @@
 #ifndef _WORD_LIST_H
 #define _WORD_LIST_H
 #include <libraries.h>
-#include <wordNode.h>
+#include <data_structures/wordNode.h>
 
 typedef struct wordList {
 	WordNode *head, *tail;

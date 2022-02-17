@@ -2,7 +2,6 @@
  * We may want to create an additional function called save macro
  * and replace it with the long macro saving process inside the expandMacros function
 */
-
 #include <preprocessor.h>
 
 /* Temporary static functions until we'll decide which data struct we're gonna use */
