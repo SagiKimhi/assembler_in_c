@@ -3,20 +3,19 @@
 # ---------------------------------------------
 
 # Compiler
-CC=gcc
+CC = gcc
 
 # Flags Variables
-CFLAGS=-ansi -pedantic -g -Wall
-OFLAGS=-c
+CFLAGS = -ansi -pedantic -g -Wall
+OFLAGS = -c
 
 # Final executable/binary
-BIN=asmake
+BIN = asmake
 
 # Directory Variables
-PROJDIR ::= $(realpath $(CURDIR))
-HEADERDIR ::= $(PROJDIR)/hdr
-SOURCEDIR ::= $(PROJDIR)/src
-OBJECTDIR ::= $(PROJDIR)/obj
+HEADERDIR = hdr
+SOURCEDIR = src
+OBJECTDIR = obj
 
 # Create a list of subdirectories
 SUBDIRS = data_structures
@@ -32,27 +31,34 @@ INCLUDES = $(foreach dir, $(HEADERDIRS), $(addprefix -I, $(dir)))
 SOURCES = $(foreach dir,$(SOURCEDIRS),$(wildcard $(dir)/*.c))
 OBJECTS ::= $(subst $(SOURCEDIR),$(OBJECTDIR),$(SOURCES:.c=.o))
 
-# Useful Variables
-SEP=/
-RM = rm -rf
+# Useful Commands
+RM = rm -r
 MKDIR = mkdir -p
-
-# ---------------------------------------------
-
 # Remove spaces after seperator
+SEP=/
 PSEP = $(strip $(SEP))
 
-# Defines a function that will generate each rule
-define generateRules
-$(1)/%.o: %.c
-	@echo Building $$@
-	$$(CC) $$(CFLAGS) $$(OFLAGS) $$(INCLUDES) -o $$(subst /,$$(PSEP),$$@) $$(subst /,$$(PSEP),$$<) -MMD
-endef
+# ---------------------------------------------
 
 
 # ---------------------------------------------
 #  Compilation options:
 # ---------------------------------------------
+
+# Decide whether or not commands will be shown
+VERBOSE = FALSE
+ifeq ($(VERBOSE),TRUE)
+	HIDE =
+else
+	HIDE = @
+endif
+
+# Defines a function that will generate each rule
+define generateRules
+$(1)/%.o: %.c
+	@echo Building $$@
+	$(HIDE)$(CC) $$(CFLAGS) $$(OFLAGS) $$(INCLUDES) $$(subst /,$$(PSEP),$$<) -o $$(subst /,$$(PSEP),$$@)
+endef
 
 .PHONY: all clean directories
 
@@ -83,15 +89,16 @@ withTree: $(BIN)
 
 # Creation of binary file
 $(BIN): $(OBJECTS)
-	echo Linking $@
-	$(CC) $(CFLAGS) $(OBJECTS) -o $(BIN)
+	@echo Linking $@
+	$(HIDE)$(CC) $(CFLAGS) $(OBJECTS) -o $(BIN)
+	@echo Done!
 
 # Creation of object files (Generate rules)
 $(foreach dir, $(OBJECTDIRS), $(eval $(call generateRules, $(dir))))
 
 # Creates a directory for storing object files
 directories:
-	$(MKDIR) $(subst /,$(PSEP),$(OBJECTDIRS))
+	$(HIDE)$(MKDIR) $(subst /,$(PSEP),$(OBJECTDIRS))
 # ---------------------------------------------
 
 
@@ -101,10 +108,12 @@ directories:
 
 # Removes object files and executable/binary file
 clean:
-ifdef OBJECTDIRS
-	$(RM) $(subst /, $(PSEP), $(OBJECTDIRS))
+ifdef OBJECTDIR
+	$(HIDE)$(RM) $(OBJECTDIR)
 endif
 ifdef BIN
-	$(RM) $(BIN)
+	$(HIDE)$(RM) $(BIN)
 endif
+	@echo Cleaning done!
+
 # ---------------------------------------------
