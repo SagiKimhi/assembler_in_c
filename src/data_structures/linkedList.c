@@ -1,4 +1,4 @@
-#include <data_structures/linkedList.h>
+#include <linkedList.h>
 
 List *newList()
 {

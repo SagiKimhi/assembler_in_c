@@ -1,4 +1,4 @@
-#include <data_structures/hashTable.h>
+#include <hashTable.h>
 
 const float MAX_LOAD_FACTOR = 0.75;
 const float OPTIMAL_LOAD_FACTOR = 0.15;

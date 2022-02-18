@@ -1,4 +1,4 @@
-#include <data_structures/wordNode.h>
+#include <wordNode.h>
 
 WordNode *newWordNode(const char *name, void *data)
 {

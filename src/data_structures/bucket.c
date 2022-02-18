@@ -1,4 +1,4 @@
-#include <data_structures/bucket.h>
+#include <bucket.h>
 
 Bucket *newBucket(char *key, void *data)
 {

@@ -32,7 +32,8 @@ SOURCES = $(foreach dir,$(SOURCEDIRS),$(wildcard $(dir)/*.c))
 OBJECTS ::= $(subst $(SOURCEDIR),$(OBJECTDIR),$(SOURCES:.c=.o))
 
 # Useful Commands
-RM = rm -r
+RM = rm
+RMDIR = rm -r
 MKDIR = mkdir -p
 # Remove spaces after seperator
 SEP=/
@@ -109,7 +110,7 @@ directories:
 # Removes object files and executable/binary file
 clean:
 ifdef OBJECTDIR
-	$(HIDE)$(RM) $(OBJECTDIR)
+	$(HIDE)$(RMDIR) $(OBJECTDIR)
 endif
 ifdef BIN
 	$(HIDE)$(RM) $(BIN)

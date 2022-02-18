@@ -1,7 +1,7 @@
 #ifndef _HASH_TABLE_H
 #define _HASH_TABLE_H
 #include <libraries.h>
-#include <data_structures/bucket.h>
+#include <bucket.h>
 
 #ifndef TABLE_SIZE
 #define TABLE_SIZE 17

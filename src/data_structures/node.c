@@ -1,4 +1,4 @@
-#include <data_structures/node.h>
+#include <node.h>
 
 Node *newNode()
 {

@@ -2,9 +2,9 @@
 #define _PREPROCESSOR_H
 #include <macro.h>
 #include <libraries.h>
-#include <data_structures/binaryTree.h>
-#include <data_structures/hashTable.h>
-#include <data_structures/wordList.h>
+#include <binaryTree.h>
+#include <hashTable.h>
+#include <wordList.h>
 
 #define USE_LIST 0
 #define USE_TABLE 0

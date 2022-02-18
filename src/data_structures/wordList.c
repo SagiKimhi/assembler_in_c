@@ -1,4 +1,4 @@
-#include <data_structures/wordList.h>
+#include <wordList.h>
 
 WordList *newWordList()
 {
