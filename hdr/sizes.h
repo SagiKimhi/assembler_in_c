@@ -4,6 +4,7 @@
 
 #define MAX_LINE_LEN 82			/* maximum length for a line of input + '\0' */
 #define MAX_LABEL_LEN 32		/* maximum length for a label, excluding '\0' */
+#define FORMAT_DEFAULT_LEN 50
 #define MAX_OPERATION_LEN 4
 #define MEM_CELL_SIZE 20		/* the size of a signel cell of memory */
 #define MEMSIZE 8192			/* the total number of the RAM's memory cells */

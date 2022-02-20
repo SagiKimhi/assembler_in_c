@@ -2,10 +2,8 @@
 #define _ERRORS_H
 
 #define __EXIT_ERROR__MISSING_ARGS(EXECUTABLE_NAME) {\
-	fprintf(stderr, "Error: No command line arguments were found.\n"\
-	"Please provide the paths of the files to be assembled as command line arguments...\n"\
-	"Usage: %s <FILE PATH1> <FILE PATH2> <...>\n"\
-	"Aborting operation...\n", EXECUTABLE_NAME);\
+	fprintf(stderr, "Usage: %s <FILE> <FILE> <...>\n"\
+			"Aborting...\n", EXECUTABLE_NAME);\
 	exit(EXIT_FAILURE);\
 }
 

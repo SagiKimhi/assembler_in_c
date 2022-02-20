@@ -64,22 +64,7 @@ endef
 .PHONY: all clean directories
 
 # Default binary compilation method
-all: directories withTree
-
-# The program's data structure of
-# choice would be a Linked List structure
-withList: CFLAGS+=-D__USE_LIST__
-withList: $(BIN)
-
-# The program's data structure of
-# choice would be a Hash Table structure
-withTable: CFLAGS+=-D__USE_TABLE__
-withTable: $(BIN)
-
-# The program's data structure of
-# choice would be a Binary Tree structure
-withTree: CFLAGS+=-D__USE_TREE__
-withTree: $(BIN)
+all: directories $(BIN)
 
 # ---------------------------------------------
 

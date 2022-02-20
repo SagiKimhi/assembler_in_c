@@ -4,247 +4,63 @@
 */
 #include <preprocessor.h>
 
-/* Temporary static functions until we'll decide which data struct we're gonna use */
-static void macroPreprocessor_tree(FILE *read, FILE *write);
-static void macroPreprocessor_list(FILE *read, FILE *write);
-static void macroPreprocessor_table(FILE *read, FILE *write);
-static int fscanAndExpandMacros_tree(FILE *readPtr, FILE *writePtr, Tree *binTree, int macroFlag);
-static int fscanAndExpandMacros_list(FILE *readPtr, FILE *writePtr, WordList *wordList, int macroFlag);
-static int fscanAndExpandMacros_table(FILE *readPtr, FILE *writePtr, HashTable *hashTable, int macroFlag);
+static int fscanAndExpandMacros(FILE *readPtr, FILE *writePtr, Tree *binTree, int macroFlag);
 
 /* Also temporary until a data structure is decided for the preprocessor */
 void macroPreprocessor(FILE *read, FILE *write)
-{
-	if (USE_LIST)
-		macroPreprocessor_list(read, write);
-	else if (USE_TABLE)
-		macroPreprocessor_table(read, write);
-	else
-		macroPreprocessor_tree(read, write);
-}
-
-/* Uses a Binary Tree data structure for the preprocessing operation (This is the best
- * fit for this purpose in my opinion, both timewise, and also since the binary tree's source code
- * is super clean compared to the other data structures). */
-static void macroPreprocessor_tree(FILE *read, FILE *write)
 {
 	Tree *binTree = newTree();
 
 	if (!read || !write)
 		return;
 
-	fscanAndExpandMacros_tree(read, write, binTree, 0);
+	fscanAndExpandMacros(read, write, binTree);
 	deleteTree(binTree);
 }
-
 /* fscanAndExpandMacros: Scans macro definitions from the file pointed to by readPtr, and writes
  * the 'processed version' into the file pointed to by writePtr. 
  * 'Processed version' means that macro definitions are not included in the new file,
  * and all macro calls are replaced by the actual contents of those defined macros. 
  */
-static int fscanAndExpandMacros_tree(FILE *readPtr, FILE *writePtr, Tree *binTree, int macroFlag)
+static int fscanAndExpandMacros(FILE *readPtr, FILE *writePtr, Tree *binTree)
 {
+	/* Variable Definitions */
 	Macro *macro;
-	char word[MAX_LINE_LEN];
-	char line[MAX_LINE_LEN];
-	int bytesScanned=0,tempPos = ftell(readPtr);
+	char temp[MAX_LINE_LEN+1], macroName[MAX_LINE_LEN+1];
 
-	/* Get the next line from the file stream */
-	if (!fgets(line, MAX_LINE_LEN, readPtr)) 
-		return -1;
+	/* Error checking */
+	if (getWord(temp, MAX_LINE_LEN+1, readPtr)<=0) 
+		return EOF;
 
-	/* Save the first word in the line, and count the bytes up to the word following it,
-	 * if no word was scanned - print the empty line and begin another iteration */
-	if (sscanf(line, " %s %n", word, &bytesScanned) != 1) {
-		fprintf(writePtr, "%s", line);
-		return fscanAndExpandMacros_tree(readPtr, writePtr, binTree, macroFlag);
-	}
+	/* Check for begining of macro definition */
+	if (!strcmp(temp, START_OF_MACRO_DEFINITION)) {
+		/* Get the name of the macro + Error checking */
+		if (getWord(macroName, MAX_LINE_LEN+1, readPtr)<=0)
+			return EOF;
 
-	/* check if the first word indicates the begining of a macro definition */
-	if (!macroFlag && !strcmp(word, START_OF_MACRO_DEFINITION)) {
-		int temp = 0;
-		/* Check if there's also a macro name, and save it to 'word' */
-		if (sscanf(&line[bytesScanned], " %s %n", word, &temp) == 1) {
-			bytesScanned += temp;
-			macroFlag = 1;
-		}
-	}
-
-	/* saving the macro to the data structure 
-	 * (if we're indeed inside a macro definition) */
-	if (macroFlag) {
-		char *tempWord;
+		/* Create a new macro and save it into the data structure */
 		macro = newMacro();
-		/* save the file's position of the macro definition */
-		macro->startPos = tempPos + bytesScanned; 
+		macro->startPos = ftell(readPtr);
+		binTree->root = addTreeNode(binTree->root, macroName, macro);
 
-		/* if the end of macro defiinition is not in this line, keep advancing
-		 * the file position indicator until reaching end of function definition */
-		if (!(tempWord=strstr(line, END_OF_MACRO_DEFINITION)))
-			while ((fscanf(readPtr, " %s ", line)==1) && strcmp(line, END_OF_MACRO_DEFINITION))
-				tempPos=ftell(readPtr);
-		else
-			tempPos += (tempWord-line);
+		/* Find the end of macro definition, and save the end of macro 
+		 * definition's file index to the new macro structure */
+		while (strcmp(temp, END_OF_MACRO_DEFINITION)) {
+			if (getWord(temp, MAX_LINE_LEN+1, readPtr)<=0)
+				return EOF;
+			macro->endPos = ftell(readPtr);
+		}
 
-		macro->endPos = tempPos;
-		binTree->root = addTreeNode(binTree->root, word, macro);
-
-		return fscanAndExpandMacros_tree(readPtr, writePtr, binTree, 0);
+		return fscanAndExpandMacros(readPtr, writePtr, binTree);
 	}
 
 	/* If the first word is a previously defined macro, print the 
 	 * contents of the macro to writePtr with fprintMacro, otherwise 
 	 * print the line 'as is' and start the function over from the next line */
-	if ((macro = treeSearch(binTree->root, word))!=NULL)
+	if ((macro = treeSearch(binTree->root, temp))!=NULL)
 		fprintMacro(readPtr, writePtr, macro);
 	else
-		fprintf(writePtr, "%s", line);
+		getLine() /* NEED TO ADD APPROPRIATE CODE HERE! */
 
-	return fscanAndExpandMacros_tree(readPtr, writePtr, binTree, 0);
+	return fscanAndExpandMacros(readPtr, writePtr, binTree);
 }
-
-
-/* Uses a list data structure for the preprocessing operation */
-static void macroPreprocessor_list(FILE *read, FILE *write)
-{
-	WordList *wordList = newWordList();
-
-	if (!read || !write)
-		return;
-
-	if (!wordList) {
-		fprintf(stderr, "Error: unable to initialize list. Aborting...\n");
-		exit(EXIT_FAILURE);
-	}
-
-	fscanAndExpandMacros_list(read, write, wordList, 0);
-	w_deleteList(wordList);
-}
-
-/* Uses a HashTable data structure for the preprocessing operation */
-static void macroPreprocessor_table(FILE *read, FILE *write)
-{
-	HashTable *hashTable = newHashTable(TABLE_SIZE);
-
-	if (!read || !write)
-		return;
-
-	if (!hashTable) {
-		fprintf(stderr, "Error: unable to initialize table. Aborting...\n");
-		exit(EXIT_FAILURE);
-	}
-
-	fscanAndExpandMacros_table(read, write, hashTable, 0);
-	deleteTable(hashTable, &deleteMacro);
-}
-
-
-static int fscanAndExpandMacros_table(FILE *readPtr, FILE *writePtr, HashTable *hashTable, int macroFlag)
-{
-	Macro *macro;
-	char word[MAX_LINE_LEN];
-	char line[MAX_LINE_LEN];
-	int bytesScanned=0,tempPos = ftell(readPtr);
-
-	if (!fgets(line, MAX_LINE_LEN, readPtr)) 
-		return -1;
-
-	if (sscanf(line, " %s %n", word, &bytesScanned) != 1) {
-		fprintf(writePtr, "%s", line);
-		return fscanAndExpandMacros_table(readPtr, writePtr, hashTable, macroFlag);
-	}
-
-	if (!macroFlag && !strcmp(word, "macro")) {
-		int temp = 0;
-		if (sscanf(&line[bytesScanned], " %s %n", word, &temp) == 1) {
-			tempPos += (temp+bytesScanned);
-			macroFlag = 1;
-		}
-	}
-
-	if (macroFlag) {
-		char *tempWord;
-		macro = newMacro();
-		macro->startPos = tempPos;
-
-		if (!(tempWord=strstr(line, "endm")))
-			while ((fscanf(readPtr, " %s ", line)==1) && strcmp(line, "endm"))
-				tempPos=ftell(readPtr);
-		else
-			tempPos += (tempWord-word);
-
-		macro->endPos = tempPos;
-
-		if (!insert(hashTable, word, macro)) {
-			fprintf(stderr, "Error: macro inserion failed. macro name: %s\n", word);
-			exit(EXIT_FAILURE);
-		}
-
-		return fscanAndExpandMacros_table(readPtr, writePtr, hashTable, 0);
-	}
-
-	if ((macro = (Macro *)search(hashTable, word))!=NULL)
-		fprintMacro(readPtr, writePtr, macro);
-	else
-		fprintf(writePtr, "%s", line);
-
-	return fscanAndExpandMacros_table(readPtr, writePtr, hashTable, 0);
-}
-
-static int fscanAndExpandMacros_list(FILE *readPtr, FILE *writePtr, WordList *wordList, int macroFlag)
-{
-	Macro *macro;
-	char word[MAX_LINE_LEN];
-	char line[MAX_LINE_LEN];
-	int bytesScanned=0,tempPos = ftell(readPtr);
-
-	if (!fgets(line, MAX_LINE_LEN, readPtr)) 
-		return -1;
-
-	if (sscanf(line, " %s %n", word, &bytesScanned) != 1) {
-		fprintf(writePtr, "%s", line);
-		return fscanAndExpandMacros_list(readPtr, writePtr, wordList, macroFlag);
-	}
-
-	if (!macroFlag && !strcmp(word, "macro")) {
-		int temp = 0;
-		if (sscanf(&line[bytesScanned], " %s %n", word, &temp) == 1) {
-			tempPos += (temp+bytesScanned);
-			macroFlag = 1;
-		}
-	}
-
-	if (macroFlag) {
-		char *tempWord;
-		macro = newMacro();
-		macro->startPos = tempPos;
-
-		if (!(tempWord=strstr(line, "endm")))
-			while ((fscanf(readPtr, " %s ", line)==1) && strcmp(line, "endm"))
-				tempPos=ftell(readPtr);
-		else
-			tempPos += (tempWord-word);
-
-		macro->endPos = tempPos;
-
-		if (w_searchList(wordList, word) != NULL) {
-			fprintf(stderr, "Error: macro \"%s\" already defined. Aborting...", word);
-			exit(EXIT_FAILURE);
-		}
-
-		if (!w_addToEnd(wordList, word, macro)) {
-			fprintf(stderr, "Error: macro inserion failed. macro name: %s\n", word);
-			exit(EXIT_FAILURE);
-		}
-
-		return fscanAndExpandMacros_list(readPtr, writePtr, wordList, 0);
-	}
-
-	if ((macro = w_searchList(wordList, word))!=NULL)
-		fprintMacro(readPtr, writePtr, macro);
-	else
-		fprintf(writePtr, "%s", line);
-
-	return fscanAndExpandMacros_list(readPtr, writePtr, wordList, 0);
-}
-

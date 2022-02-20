@@ -1,0 +1,189 @@
+[
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-ansi",
+            "-pedantic",
+            "-g",
+            "-Wall",
+            "-Ihdr",
+            "-Ihdr/data_structures",
+            "-o",
+            "obj/data_structures/wordList.o",
+            "src/data_structures/wordList.c"
+        ],
+        "directory": "/home/whoknows/Desktop/Sagi/public-repositories/asmake",
+        "file": "src/data_structures/wordList.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-ansi",
+            "-pedantic",
+            "-g",
+            "-Wall",
+            "-Ihdr",
+            "-Ihdr/data_structures",
+            "-o",
+            "obj/main.o",
+            "src/main.c"
+        ],
+        "directory": "/home/whoknows/Desktop/Sagi/public-repositories/asmake",
+        "file": "src/main.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-ansi",
+            "-pedantic",
+            "-g",
+            "-Wall",
+            "-Ihdr",
+            "-Ihdr/data_structures",
+            "-o",
+            "obj/macro.o",
+            "src/macro.c"
+        ],
+        "directory": "/home/whoknows/Desktop/Sagi/public-repositories/asmake",
+        "file": "src/macro.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-ansi",
+            "-pedantic",
+            "-g",
+            "-Wall",
+            "-Ihdr",
+            "-Ihdr/data_structures",
+            "-o",
+            "obj/data_structures/wordNode.o",
+            "src/data_structures/wordNode.c"
+        ],
+        "directory": "/home/whoknows/Desktop/Sagi/public-repositories/asmake",
+        "file": "src/data_structures/wordNode.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-ansi",
+            "-pedantic",
+            "-g",
+            "-Wall",
+            "-Ihdr",
+            "-Ihdr/data_structures",
+            "-o",
+            "obj/tempName.o",
+            "src/tempName.c"
+        ],
+        "directory": "/home/whoknows/Desktop/Sagi/public-repositories/asmake",
+        "file": "src/tempName.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-ansi",
+            "-pedantic",
+            "-g",
+            "-Wall",
+            "-Ihdr",
+            "-Ihdr/data_structures",
+            "-o",
+            "obj/data_structures/linkedList.o",
+            "src/data_structures/linkedList.c"
+        ],
+        "directory": "/home/whoknows/Desktop/Sagi/public-repositories/asmake",
+        "file": "src/data_structures/linkedList.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-ansi",
+            "-pedantic",
+            "-g",
+            "-Wall",
+            "-Ihdr",
+            "-Ihdr/data_structures",
+            "-o",
+            "obj/data_structures/binaryTree.o",
+            "src/data_structures/binaryTree.c"
+        ],
+        "directory": "/home/whoknows/Desktop/Sagi/public-repositories/asmake",
+        "file": "src/data_structures/binaryTree.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-ansi",
+            "-pedantic",
+            "-g",
+            "-Wall",
+            "-Ihdr",
+            "-Ihdr/data_structures",
+            "-o",
+            "obj/data_structures/hashTable.o",
+            "src/data_structures/hashTable.c"
+        ],
+        "directory": "/home/whoknows/Desktop/Sagi/public-repositories/asmake",
+        "file": "src/data_structures/hashTable.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-ansi",
+            "-pedantic",
+            "-g",
+            "-Wall",
+            "-Ihdr",
+            "-Ihdr/data_structures",
+            "-o",
+            "obj/data_structures/node.o",
+            "src/data_structures/node.c"
+        ],
+        "directory": "/home/whoknows/Desktop/Sagi/public-repositories/asmake",
+        "file": "src/data_structures/node.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-ansi",
+            "-pedantic",
+            "-g",
+            "-Wall",
+            "-Ihdr",
+            "-Ihdr/data_structures",
+            "-o",
+            "obj/preprocessor.o",
+            "src/preprocessor.c"
+        ],
+        "directory": "/home/whoknows/Desktop/Sagi/public-repositories/asmake",
+        "file": "src/preprocessor.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-ansi",
+            "-pedantic",
+            "-g",
+            "-Wall",
+            "-Ihdr",
+            "-Ihdr/data_structures",
+            "-o",
+            "obj/data_structures/bucket.o",
+            "src/data_structures/bucket.c"
+        ],
+        "directory": "/home/whoknows/Desktop/Sagi/public-repositories/asmake",
+        "file": "src/data_structures/bucket.c"
+    }
+]
