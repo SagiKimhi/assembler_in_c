@@ -49,7 +49,7 @@ int getWord(char *buffer, size_t size, FILE *stream)
 {
 	int i, c;
 
-	if (!buffer || !size || !stream)
+	if (!buffer || !size || !stream || feof(stream))
 		return 0;
 
 	/* Skip spaces - including newlines */
@@ -63,9 +63,12 @@ int getWord(char *buffer, size_t size, FILE *stream)
 		return EOF;
 	
 	buffer[i] = '\0';
-	ungetc(c, stream);
-	/* if c is not whitespace then the word is longer than size */
-	return (isspace(c)) ? i: 0;
+
+	if (isspace(c))
+		ungetc(c, stream);
+
+	/* if c is not whitespace or EOF then the word is longer than size */
+	return (isspace(c) || c==EOF) ? i: 0;
 }
 
 /* skipSpaces: skips all trailing spaces in stream up until reaching a
@@ -76,7 +79,7 @@ int skipSpaces(FILE *stream)
 {
 	int c;
 
-	if (!stream)
+	if (!stream || feof(stream))
 		return EOF;
 
 	while (isspace(c=fgetc(stream))) {
@@ -84,8 +87,71 @@ int skipSpaces(FILE *stream)
 			return c;
 	}
 	
-	if (c == EOF)
+	if (c==EOF)
 		return EOF;
 
 	return ungetc(c, stream);
 }
+
+/* putStreamLine: Prints a line from FILE in at indexIn - out to FILE out at indexOut.
+ * Returns 1 if successful, 0 upon failure, or EOF if reached FILE in's End of File. */
+int putStreamLine(FILE *in, int32_t indexIn, FILE *out, int32_t indexOut)
+{
+	int c;
+
+	if (!in || !out)
+		return 0;
+	
+	/* check that indexIn is not at/after EOF */
+	if (fseek(in, 0, SEEK_END) || ftell(in)<=indexIn)
+		return 0;
+	
+	/* check that indexOut is not after EOF */
+	if (fseek(out, 0, SEEK_END) || ftell(in)<indexOut)
+		return 0;
+
+	/* set the appropriate FILE indices */
+	if (fseek(in, indexIn, SEEK_SET) || fseek(out, indexOut, SEEK_SET))
+		return 0;
+
+	/* Print in to out until reaching a newline or EOF */
+	while ((c=getc(in))!=EOF && c!='\n')
+		putc(c, out);
+
+	if (c==EOF)
+		return EOF;
+
+	/* Print newline and return */
+	putc(c, out);
+	return 1;
+}
+
+/* copyStream: Prints the contents of FILE *in, starting at indexIn up to inLimit,
+ * out to FILE *out - at indexOut.
+ * Returns 1 if successful, 0 upon failure, or EOF if reached FILE in's End of File. */
+int copyStream(FILE *in, int32_t indexIn, int32_t inLimit, FILE *out, int32_t indexOut)
+{
+	int c;
+
+	if (!in || !out || indexIn>inLimit || indexIn<0)
+		return 0;
+	
+	/* check that inLimit is not after EOF */
+	if (fseek(in, 0, SEEK_END) || ftell(in)<=inLimit)
+		return 0;
+	
+	/* check that indexOut is not after EOF */
+	if (fseek(out, 0, SEEK_END) || ftell(in)<indexOut)
+		return 0;
+
+	/* set the appropriate FILE indices */
+	if (fseek(in, indexIn, SEEK_SET) || fseek(out, indexOut, SEEK_SET))
+		return 0;
+
+	/* Print in to out until reaching a newline or EOF */
+	while ((c=getc(in))!=EOF && ftell(in)<=inLimit)
+		putc(c, out);
+
+	return (c==EOF) ? EOF: 1;
+}
+

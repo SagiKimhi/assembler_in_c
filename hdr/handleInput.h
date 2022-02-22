@@ -18,6 +18,16 @@ int getLine(char *buffer, int size, FILE *stream);
  * or EOF if reached EOF before any characters could be saved into buffer. */
 int getWord(char *buffer, size_t size, FILE *stream);
 
+/* putStreamLine: Prints a line from FILE in at indexIn - out to FILE out
+ * at indexOut. Returns 1 if successful, 0 upon failure, or EOF if reached
+ * FILE in's End of File. */
+int putStreamLine(FILE *in, int32_t indexIn, FILE *out, int32_t indexOut);
+
+/* copyStream: Prints the contents of FILE *in, starting at indexIn up to inLimit,
+ * out to FILE *out - at indexOut.
+ * Returns 1 if successful, 0 upon failure, or EOF if reached FILE in's End of File. */
+int copyStream(FILE *in, int32_t indexIn, int32_t inLimit, FILE *out, int32_t indexOut);
+
 /* skipSpaces: skips all trailing spaces in stream up until reaching a
  * newline or a non whitespace character.
  * Returns the latest character encountered, EOF upon failure or if EOF was encountered

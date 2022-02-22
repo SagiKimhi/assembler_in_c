@@ -74,6 +74,9 @@ void *treeSearch(TreeNode *root, char *key)
 
 static void *deleteTree_rec(TreeNode *root)
 {
+	if (!root)
+		return NULL;
+
 	if (root->leftChild != NULL)
 		root->leftChild = deleteTree_rec(root->leftChild);
 

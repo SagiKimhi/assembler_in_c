@@ -180,6 +180,23 @@
             "-Ihdr",
             "-Ihdr/data_structures",
             "-o",
+            "obj/handleInput.o",
+            "src/handleInput.c"
+        ],
+        "directory": "/home/whoknows/Desktop/Sagi/public-repositories/asmake",
+        "file": "src/handleInput.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-ansi",
+            "-pedantic",
+            "-g",
+            "-Wall",
+            "-Ihdr",
+            "-Ihdr/data_structures",
+            "-o",
             "obj/data_structures/bucket.o",
             "src/data_structures/bucket.c"
         ],

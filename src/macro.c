@@ -19,16 +19,14 @@ void deleteMacro(Macro *macro)
 
 void fprintMacro(FILE *readPtr, FILE *writePtr, Macro *macro)
 {
-	int32_t latestReadPos;
+	int32_t tempReadPosition;
 
+	/* FILE Error checking */
 	if (!readPtr || !writePtr || !macro)
 		return;
 
-	latestReadPos = ftell(readPtr);
-	fseek(readPtr, macro->startPos, SEEK_SET);
-
-	while (ftell(readPtr) < macro->endPos)
-		fputc(fgetc(readPtr), writePtr);
-
-	fseek(readPtr, latestReadPos, SEEK_SET);
+	tempReadPosition = ftell(readPtr);
+	
+	copyStream(readPtr, macro->startPos, macro->endPos, writePtr, ftell(writePtr));
+	fseek(readPtr, tempReadPosition, SEEK_SET);
 }
