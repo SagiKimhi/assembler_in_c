@@ -2,10 +2,10 @@
 #define _SIZES_H
 #include <stdio.h>
 
-#define MAX_LINE_LEN 82			/* maximum length for a line of input + '\0' */
+#define MAX_LINE_LEN 81			/* maximum length for a line of input, excluding '\0' */
 #define MAX_LABEL_LEN 32		/* maximum length for a label, excluding '\0' */
+#define MAX_MACRO_LEN 32		/* maximum length for a macro, excluding '\0' */
 #define FORMAT_DEFAULT_LEN 50
-#define MAX_OPERATION_LEN 4
 #define MEM_CELL_SIZE 20		/* the size of a signel cell of memory */
 #define MEMSIZE 8192			/* the total number of the RAM's memory cells */
 #define DATA_MAX 524287			/* maximum signed 20 bit integer */

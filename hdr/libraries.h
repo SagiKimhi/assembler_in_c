@@ -9,6 +9,8 @@
 #include <encodeBits.h>
 
 #define FAILURE -1
+#define GENERATE_ENUM(ENUM) ENUM
+#define GENERATE_STRING(STRING) #STRING
 
 typedef enum BooleanExpression {
 	False = 0,

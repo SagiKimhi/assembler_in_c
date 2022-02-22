@@ -1,61 +1,63 @@
 #include <tempName.h>
 
-const AddressingMode addressingMode[] = {
-	/* Immediate addressing mode specs: */
+
+enum modeValues {
+	LOAD_ADRESSING_MODES(GENERATE_ENUM)
+};
+
+/* String formats of each addressing mode */
+const char modeFormats[][MAX_ADDRESSING_FORMAT_LEN+1] = {
+	/* Immediate */
+	"#%hd",			/* For example: #-27 */
+
+	/* Direct */
+	"%s",			/* For example: foo */
+
+	/* Index */
+	"%s[r%2hd]",	/* For example: foo[r13] */
+
+	/* Register Direct */
+	"r%2hd"			/* For example: r5 */
+
+}
+
+
+const AddressingMode addressingModes[] = {
+	/* Immediate Mode */
 	{
-		1,									/* additionalWords */
-		encodeOriginAddressMode(IMMEDIATE),	/* originBinRep */
-		encodeDestAddressMode(IMMEDIATE)	/* destBinRep */
+		IMMEDIATE,						/* Mode Value */
+		modeFormats[IMMEDIATE],			/* Mode Format */
+		1								/* Additional words required */
+	},
+	{
+		DIRECT,							/* Mode Value */
+		modeFormats[Direct],			/* Mode Format */
+		2								/* Additional words required */
+	},
+	{
+		INDEX,							/* Mode Value */
+		modeFormats[INDEX],				/* Mode Format */
+		2								/* Additional words required */
+	},
+	{
+		REGISTER_DIRECT,				/* Mode Value */
+		modeFormats[REGISTER_DIRECT],	/* Mode Format */
+		0								/* Additional words required */
 	},
 
-	/* Direct addressing mode specs: */
-	{
-		2,									/* additionalWords */
-		encodeOriginAddressMode(DIRECT),	/* originBinRep */
-		encodeDestAddressMode(DIRECT)		/* destBinRep */
-	},
+};
 
-	/* Index addressing mode specs: */
-	{
-		2,											/* additionalWords */
-		encodeOriginAddressMode(INDEX),				/* originBinRep */
-		encodeDestAddressMode(INDEX)				/* destBinRep */
-	},
+static AddressingMode *searchMode(char *format)
+{
+	int32_t temp = 0;
+	char label[MAX_LABEL_LEN+1] = {0};
 
-	/* Register direct addressing mode specs: */
-	{
-		0,									/* additionalWords */
-		encodeOriginAddressMode(REG_DIRECT),/* originBinRep */
-		encodeDestAddressMode(REG_DIRECT)	/* destBinRep */
+	if (!format || strlen(format)>MAX_ADDRESSING_FORMAT_LEN)
+		return NULL;
+
+	/* The Direct addressing format is the most generic format,
+	 * therefore, it will be the last one we test */
+	if (sscanf(format, AddressingModes[IMMEDIATE]->modeFormat, &temp)==1) {
+		if (temp>SHRT_MAX || tmp<SHRT_MIN)
 	}
-};
-
-/* Since an enum is also defined, it allows accessing
- * operations in the array by name, for example:
- * operationNames[sub] will return "sub" */
-const char operationNames[][MAX_OPERATION_LEN+1] = {
-	LOAD_OPERATIONS(GENERATE_STRING)
-};
-
-const Operation operation[] = {
-
-	/* {op code, funct, #operands} */
-
-	{op_mov, none, 2},		/* mov */
-	{op_cmp, none, 2},		/* cmp */
-	{op_add, funct_add, 2},	/* add */
-	{op_sub, funct_sub, 2},	/* sub */
-	{op_lea, none, 2},		/* lea */
-	{op_clr, funct_clr, 1},	/* clr */
-	{op_not, funct_not, 1},	/* not */
-	{op_inc, funct_inc, 1},	/* inc */
-	{op_dec, funct_dec, 1},	/* dec */
-	{op_jmp, funct_jmp, 1},	/* jmp */
-	{op_bne, funct_bne, 1},	/* bne */
-	{op_jsr, funct_jsr, 1},	/* jsr */
-	{op_red, none, 1},		/* red */
-	{op_prn, none, 1},		/* prn */
-	{op_rts, none, 0},		/* rts */
-	{op_stop, none, 0}		/* stop */
-
-};
+}
