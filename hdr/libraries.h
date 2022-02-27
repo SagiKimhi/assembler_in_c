@@ -9,8 +9,11 @@
 #include <encodeBits.h>
 
 #define FAILURE -1
+#define CONCATENATE(A,B) A##B
 #define GENERATE_ENUM(ENUM) ENUM
 #define GENERATE_STRING(STRING) #STRING
+#define GENERATE_SCANF_FORMAT(SIZE,FMT_CHAR)\
+	GENERATE_STRING( CONCATENATE(CONCATENATE(%,SIZE),FMT_CHAR) )
 
 typedef enum BooleanExpression {
 	False = 0,

@@ -1,5 +1,6 @@
-#ifndef _TEMP_H
-#define _TEMP_H
+#ifndef _ADDRESSING_MODES_H
+#define _ADDRESSING_MODES_H
+
 #include <libraries.h>
 
 #define LOAD_ADRESSING_MODES(OPERATION)\
@@ -13,10 +14,8 @@
 #define MAX_ADDRESSING_FORMAT_LEN \
 	(MAX_LABEL_LEN + MAX_REGISTER_LEN + 2)	/* label[rXX] */
 
-typedef struct _AddressingMode {
-	int modeValue;			/* The value of each addressing mode for encoding*/
-	char modeFormat[];		/* The Addressing mode's syntax format */
-	int additionalWords;	/* additional words required for the addressing mode */
-} AddressingMode;
+typedef enum {
+	LOAD_ADRESSING_MODES(GENERATE_ENUM)
+} AddressingMode_t;
 
 #endif

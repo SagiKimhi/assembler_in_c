@@ -8,16 +8,16 @@ enum modeValues {
 /* String formats of each addressing mode */
 const char modeFormats[][MAX_ADDRESSING_FORMAT_LEN+1] = {
 	/* Immediate */
-	"#%hd",			/* For example: #-27 */
+	"#%hd%c",			/* For example: #-27 */
 
 	/* Direct */
-	"%s",			/* For example: foo */
+	"%s",				/* For example: foo */
 
 	/* Index */
-	"%s[r%2hd]",	/* For example: foo[r13] */
+	"%s[r%2hd]%c",		/* For example: foo[r13] */
 
 	/* Register Direct */
-	"r%2hd"			/* For example: r5 */
+	"r%2hd%c"			/* For example: r5 */
 
 }
 
@@ -47,7 +47,7 @@ const AddressingMode addressingModes[] = {
 
 };
 
-static AddressingMode *searchMode(char *format)
+AddressingMode *getMode(const char *format)
 {
 	int32_t temp = 0;
 	char label[MAX_LABEL_LEN+1] = {0};
@@ -60,4 +60,19 @@ static AddressingMode *searchMode(char *format)
 	if (sscanf(format, AddressingModes[IMMEDIATE]->modeFormat, &temp)==1) {
 		if (temp>SHRT_MAX || tmp<SHRT_MIN)
 	}
+}
+
+
+int isImmediateMode(const char *format)
+{
+	int tempNum, tempC;
+	char testFormat[] = addressingModes[IMMEDIATE]->modeFormat"%c";
+
+	if (!format)
+		return 0;
+
+	if (sscanf(format, testFormat, &tempNum, &tempC)==1)
+		return 1;
+
+	return 0;
 }
