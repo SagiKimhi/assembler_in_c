@@ -10,6 +10,8 @@
 #define MEMSIZE 8192			/* the total number of the RAM's memory cells */
 #define DATA_MAX 524287			/* maximum signed 20 bit integer */
 #define DATA_MIN 524288			/* minimum signed 20 bit integer */
+#define MAX_REGISTER_NUMBER 15	/* maximum register number (rN: r0, r1, ..., rN) */
+#define MIN_REGISTER_NUMBER 0	/* minimum register number */
 
 #ifndef _STDINT_H
 typedef signed char int8_t;		/* 8 bit signed integer */

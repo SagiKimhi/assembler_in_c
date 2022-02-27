@@ -10,9 +10,12 @@
 	OPERATION(REGISTER_DIRECT)
 
 #define MAX_REGISTER_LEN 3					/* rXX */
+#define MIN_REGISTER_LEN 2					/* rX */
+#define MIN_INDEX_REGISTER_NUMBER 10		/* minimum register number for index addressing mode */
 #define NUMBER_OF_ADDRESSING_MODES 4		/* How many addressing modes exist */
-#define MAX_ADDRESSING_FORMAT_LEN \
-	(MAX_LABEL_LEN + MAX_REGISTER_LEN + 2)	/* label[rXX] */
+#define IMMEDIATE_FORMAT "#%hd"
+#define REGISTER_DIRECT_FORMAT "[r%hd]"
+
 
 typedef enum {
 	LOAD_ADRESSING_MODES(GENERATE_ENUM)
