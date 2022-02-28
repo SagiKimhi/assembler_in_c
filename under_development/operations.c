@@ -1,4 +1,4 @@
-#include <opertaions.h>
+#include <operations.h>
 
 enum OperationEnums {
 	LOAD_OPERATIONS(GENERATE_ENUM)

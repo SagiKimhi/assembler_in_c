@@ -1,4 +1,4 @@
-#include <handleInput.h>
+#include <libIO.h>
 
 /* getLine: scans a line of input from stream with a maximum length of size and saves it 
  * into buffer, including the newline character. This function also removes trailing

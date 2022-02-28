@@ -1,7 +1,7 @@
 #ifndef _MACRO_H
 #define _MACRO_H
 #include <libraries.h>
-#include <handleInput.h>
+#include <libIO.h>
 
 typedef struct _macro{
 	int startPos;
