@@ -21,4 +21,12 @@ typedef enum {
 	LOAD_ADRESSING_MODES(GENERATE_ENUM)
 } AddressingMode_t;
 
+/* isImmediateMode: checks if expr is a valid immediate addressing mode expression.
+ * Returns 1 if it is, 0 if it isn't. */
+int isImmediateMode(const char *expr, int *number);
+int isDirectMode(const char *expr);
+int isIndexMode(const char *expr, char destLabel[MAX_LABEL_LEN+1], int *reg);
+int getAdditionalMemoryWords(AddressingMode_t mode);
+int isRegisterDirectMode(const char *expr, int *reg);
+
 #endif

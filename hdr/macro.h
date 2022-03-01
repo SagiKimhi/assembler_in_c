@@ -3,6 +3,9 @@
 #include <libraries.h>
 #include <libIO.h>
 
+#define START_OF_MACRO_DEFINITION "macro"
+#define END_OF_MACRO_DEFINITION "endm"
+
 typedef struct _macro{
 	int startPos;
 	int endPos;

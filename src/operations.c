@@ -111,57 +111,51 @@ const Operation Operations[NUMBER_OF_OPERATIONS] = {
 };
 
 /* searchOperation: Search an operation by name. 
- * Returns an operation object if it exists in the operations table, otherwise, returns NULL. */
-static Operation *searchOperation(const char *opName)
+ * Returns the index of the operation in the const Operations array.
+ * Returns FAILURE (-1) upon failure or if the operation name does not exist*/
+int searchOperation(const char *opName)
 {
 	int i, len;
 
 	if (!opName)
-		return NULL;
+		return FAILURE;
 
 	if ((len=strlen(opName))<MIN_OPERATION_LEN || len>MAX_OPERATION_LEN)
-		return NULL;
+		return FAILURE;
 
 	for (i=0; i<NUMBER_OF_OPERATIONS; i++)
-		if (!strcmp(opertaions[i]->opName, opName)
-				return operations[i];
+		if (!strcmp(Operations[i].opName, opName))
+				return i;
 
-	return NULL;
+	return FAILURE;
 }
-
-/*
-Operation getOperation(const char *opName)
-{
-	// TBD //	
-}
-*/
 
 int32_t getOpCode(const char *opName)
 {
-	Operation *ptr=NULL;
+	int i;
 
-	if (!(ptr=searchOperation(opName)))
-		return FAILUE;
+	if ((i=searchOperation(opName))==FAILURE)
+		return FAILURE;
 
-	return ptr->opCode;
+	return Operations[i].opCode;
 }
 
 int32_t getFunctCode(const char *opName)
 {
-	Operation *ptr=NULL;
+	int i;
 
-	if (!(ptr=searchOperation(opName)))
+	if ((i=searchOperation(opName))==FAILURE)
 		return FAILURE;
 
-	return ptr->functCode;
+	return Operations[i].functCode;
 }
 
 int getNumOfOperands(const char *opName)
 {
-	Operation *ptr=NULL;
+	int i;
 
-	if (!(ptr=searchOperation(opName)))
+	if ((i=searchOperation(opName))==FAILURE)
 		return FAILURE;
 
-	return ptr->numOfOperands;
+	return Operations[i].numOfOperands;
 }
