@@ -8,7 +8,8 @@ int isImmediateMode(const char *expr, int *number)
 	const char testFormat[] = IMMEDIATE_FORMAT" %c";
 
 	char tempC;
-	int	tempN, scanRes;
+	int16_t	tempN;
+	int scanRes;
 
 	if (!expr || !number)
 		return 0;
@@ -73,7 +74,8 @@ int isRegisterDirectMode(const char *expr, int *reg)
 	const char testFormat[] = REGISTER_DIRECT_FORMAT" %c";
 
 	char tempC;
-	int tempN, scanRes;
+	int16_t tempN;
+	int scanRes;
 
 	if (!expr || !reg)
 		return 0;
@@ -88,6 +90,8 @@ int isRegisterDirectMode(const char *expr, int *reg)
 		*reg = tempN;
 		return 1;
 	}
+
+	return 0;
 }
 
 int getAdditionalMemoryWords(AddressingMode_t mode)
