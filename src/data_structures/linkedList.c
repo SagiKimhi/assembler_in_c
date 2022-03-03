@@ -17,13 +17,16 @@ List *newList()
 void deleteList(List *list)
 {
 	Node *temp;
+
 	if (!list)
 		return;
+
 	while (list->head != NULL) {
 		temp = list->head;
 		list->head = temp->next;
 		deleteNode(temp);
 	}
+
 	free(list);
 }
 

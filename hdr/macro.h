@@ -1,7 +1,10 @@
 #ifndef _MACRO_H
 #define _MACRO_H
 #include <libraries.h>
-#include <handleInput.h>
+#include <libIO.h>
+
+#define START_OF_MACRO_DEFINITION "macro"
+#define END_OF_MACRO_DEFINITION "endm"
 
 typedef struct _macro{
 	int startPos;

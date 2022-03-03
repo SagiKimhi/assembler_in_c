@@ -1,5 +1,5 @@
-#ifndef _HANDLE_INPUT_H
-#define _HANDLE_INPUT_H
+#ifndef _lib_IO_H
+#define _lib_IO_H
 
 #include <libraries.h>
 
