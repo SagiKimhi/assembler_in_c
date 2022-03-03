@@ -19,13 +19,13 @@ int getLine(char *buffer, int size, FILE *stream)
 		return 0;
 	
 	
-	for (i=0, c=fgetc(stream); c!=EOF && c!='\n' && i<(size-1); c=fgetc(stream), i++) {
+	for (i=0, c=fgetc(stream); c!=EOF && c!='\n' && i<(size-1); i++) {
 		buffer[i] = c;
 
-		/* if the last saved character was whitespace, skip all trailing whitespaces.
-		 * break if reached either a newline character or EOF while skipping. */
-		if (isspace(c) && ((c=skipSpaces(stream))==EOF || c=='\n'))
-			break;
+		if (isspace(c))
+			c = skipSpaces(stream);
+		else
+			c = fgetc(stream);
 	}
 
 	/* If buffer is full and EOF was not reached */
