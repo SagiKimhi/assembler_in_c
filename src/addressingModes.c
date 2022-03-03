@@ -33,15 +33,15 @@ int isDirectMode(const char *expr)
 	return isValidLabelName(expr);
 }
 
-int isIndexMode(const char *expr, char destLabel[MAX_LABEL_LEN+1], int *reg)
+int isIndexMode(const char *expr, char labelBuff[MAX_LABEL_LEN+1], int *reg)
 {
 	const char delims[] = "[]";
+	const char *regStart, *regEnd;
 
 	int labelLen, regLen;
-	char *regStart, *regEnd;
 	char tempReg[MAX_REGISTER_LEN+1];
 
-	if (!expr || !reg)
+	if (!expr || !reg)								/* Make sure arguments != NULL */
 		return 0;
 
 	labelLen = strcspn(expr, delims);
@@ -57,7 +57,7 @@ int isIndexMode(const char *expr, char destLabel[MAX_LABEL_LEN+1], int *reg)
 	if (regEnd[0]!=']' || regEnd[1]!='\0')
 		return 0;
 
-	if (!strncpy(destLabel, expr, labelLen) || !isDirectMode(destLabel))
+	if (!strncpy(labelBuff, expr, labelLen) || !isDirectMode(labelBuff))
 		return 0;
 
 	if (!strncpy(tempReg, regStart, regLen) || !isRegisterDirectMode(expr, reg))
