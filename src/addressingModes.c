@@ -83,15 +83,14 @@ int isRegisterDirectMode(const char *expr, int *reg)
 	tempN = tempC = 0;
 	scanRes	= sscanf(expr, testFormat, &tempN, &tempC);
 
-	if (scanRes == 1) {
-		if (tempN>MAX_REGISTER_NUMBER || tempN<MIN_REGISTER_NUMBER)
-				return 0;
+	if (scanRes != 1)
+		return 0;
 
-		*reg = tempN;
-		return 1;
-	}
+	if (tempN>MAX_REGISTER_NUMBER || tempN<MIN_REGISTER_NUMBER)
+		return 0;
 
-	return 0;
+	*reg = tempN;
+	return 1;
 }
 
 int getAdditionalMemoryWords(AddressingMode_t mode)
@@ -107,4 +106,11 @@ int getAdditionalMemoryWords(AddressingMode_t mode)
 	case REGISTER_DIRECT:
 		return 0;
 	}
+}
+
+int isRegister(const char *expr)
+{
+	int tmp = 0;
+
+	return isRegisterDirectMode(expr, &tmp);
 }

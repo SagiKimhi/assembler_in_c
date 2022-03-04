@@ -28,5 +28,6 @@ int isDirectMode(const char *expr);
 int isIndexMode(const char *expr, char destLabel[MAX_LABEL_LEN+1], int *reg);
 int getAdditionalMemoryWords(AddressingMode_t mode);
 int isRegisterDirectMode(const char *expr, int *reg);
+int isRegister(const char *expr);
 
 #endif
