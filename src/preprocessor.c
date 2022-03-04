@@ -46,20 +46,20 @@ static int fscanAndExpandMacros(FILE *readPtr, FILE *writePtr, Tree *binTree)
 			skipSpaces(readPtr);
 
 			/* Create a new macro and save it into the data structure */
-			macro			= newMacro();
-			macro->startPos = ftell(readPtr);
-			binTree->root	= addTreeNode(binTree->root, tempWord, macro);
+			macro = newMacro();
+			setStartPosition(macro, ftell(readPtr));
+			binTree->root = addTreeNode(binTree->root, tempWord, macro);
 
 			/* Find the end of macro definition, and save the end of macro 
 			 * definition's file index to the new macro structure */
 			while (strcmp(tempWord, END_OF_MACRO_DEFINITION)) {
 				skipSpaces(readPtr);
-				macro->endPos = ftell(readPtr);
+				tempFilePosition = ftell(readPtr);
 
 				if (getWord(tempWord, MAX_LINE_LEN+1, readPtr)<=0)
 					return EOF;
 			}
-
+			setEndPosition(macro, tempFilePosition);
 			continue;
 		}
 
