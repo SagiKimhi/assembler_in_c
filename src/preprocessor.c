@@ -2,7 +2,6 @@
  * We may want to create an additional function called save macro
  * and replace it with the long macro saving process inside the expandMacros function
 */
-#include "macro.h"
 #include <preprocessor.h>
 
 static int fscanAndExpandMacros(FILE *readPtr, FILE *writePtr, Tree *binTree);
