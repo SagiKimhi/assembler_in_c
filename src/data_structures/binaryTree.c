@@ -1,5 +1,11 @@
+#include "treeNode.h"
 #include <binaryTree.h>
 
+struct binaryTree {
+	TreeNode *root;	
+};
+
+/* De/Constructors: */
 Tree *newTree()
 {
 	Tree *newp;
@@ -12,88 +18,77 @@ Tree *newTree()
 	return newp;
 }
 
-TreeNode *newTreeNode(char *key, void *data)
+static void deleteTree_rec(TreeNode *root, void (*deleteData)());
+void deleteTree(Tree *tree, void (*deleteData)())
 {
-	TreeNode *newp;
-
-	if (!key)
-		return NULL;
-
-	if (!(newp = (TreeNode *) malloc(sizeof(TreeNode))))
-		return NULL;
-
-	if (!(newp->key = (char *) malloc(strlen(key)+1))) {
-		free(newp);
-		return NULL;
-	}
-
-	strcpy(newp->key, key);
-	newp->data = data;
-	newp->leftChild = NULL;
-	newp->rightChild = NULL;
-
-	return newp;
+	if (!tree)
+		return;
+	deleteTree_rec(tree->root, deleteData);
+	free(tree);
 }
 
-TreeNode *addTreeNode(TreeNode *root, char *key, void *data)
+/* Setters: */
+static TreeNode *addTreeNode_rec(TreeNode *root, char *key, void *data);
+void addTreeNode(Tree *tree, char *key, void *data)
+{
+	if (!tree || !key)
+		return;
+
+	tree->root = addTreeNode_rec(tree->root, key, data);
+}
+
+/* Getters: */
+static TreeNode *searchTreeNode_rec(TreeNode *root, char *key);
+TreeNode *searchTreeNode(Tree *tree, char *key)
+{
+	if (!tree || !key)
+		return NULL;
+
+	return searchTreeNode_rec(tree->root, key);
+}
+
+static TreeNode *searchTreeNode_rec(TreeNode *root, char *key)
 {
 	int compare;
 
-	if (!key)
+	if (!root)
 		return NULL;
 
-	if (!root)
-		return (root = newTreeNode(key, data));
-
-	if (!(compare = strcmp(root->key, key)))
+	if (!(compare = strcmp(getKey(root), key)))
 		return root;
 
 	if (compare<0)
-		root->leftChild = addTreeNode(root->leftChild, key, data);
+		return searchTreeNode_rec(getLeftChild(root), key);
+
+	return searchTreeNode_rec(getRightChild(root), key);
+}
+
+static void deleteTree_rec(TreeNode *root, void (*deleteData)())
+{
+	if (!root)
+		return;
+
+	deleteTree_rec(getRightChild(root), deleteData);
+	deleteTree_rec(getLeftChild(root), deleteData);
+	(*deleteData)(getData(root));
+	deleteTreeNode(root);
+}
+
+static TreeNode *addTreeNode_rec(TreeNode *root, char *key, void *data)
+{
+	int compare;
+
+	if (!root)
+		return newTreeNode(key, data);
+
+	if (!(compare = strcmp(getKey(root), key)))
+		return root;
+
+	if (compare<0)
+		setLeftChild(root, addTreeNode_rec(getLeftChild(root), key, data));
 	else
-		root->rightChild = addTreeNode(root->rightChild, key, data);
+		setRightChild(root, addTreeNode_rec(getRightChild(root), key, data));
 
 	return root;
 }
 
-void *treeSearch(TreeNode *root, char *key)
-{
-	int compare;
-
-	if (!root || !key)
-		return NULL;
-
-	if (!(compare = strcmp(root->key, key)))
-		return root->data;
-
-	if (compare<0)
-		return treeSearch(root->leftChild, key);
-
-	return treeSearch(root->rightChild, key);
-}
-
-static void *deleteTree_rec(TreeNode *root)
-{
-	if (!root)
-		return NULL;
-
-	if (root->leftChild != NULL)
-		root->leftChild = deleteTree_rec(root->leftChild);
-
-	if (root->rightChild != NULL)
-		root->rightChild = deleteTree_rec(root->rightChild);
-
-	free(root->data);
-	free(root->key);
-	free(root);
-
-	return NULL;
-}
-
-void deleteTree(Tree *tree)
-{
-	if (!tree)
-		return;
-	deleteTree_rec(tree->root);
-	free(tree);
-}
