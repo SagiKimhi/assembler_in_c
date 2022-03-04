@@ -2,6 +2,7 @@
  * We may want to create an additional function called save macro
  * and replace it with the long macro saving process inside the expandMacros function
 */
+#include "macro.h"
 #include <preprocessor.h>
 
 static int fscanAndExpandMacros(FILE *readPtr, FILE *writePtr, Tree *binTree);
@@ -15,7 +16,7 @@ void macroPreprocessor(FILE *read, FILE *write)
 		return;
 
 	fscanAndExpandMacros(read, write, binTree);
-	deleteTree(binTree);
+	deleteTree(binTree, deleteMacro);
 }
 
 /* fscanAndExpandMacros: Scans macro definitions from the file pointed to by readPtr, and writes
@@ -43,12 +44,11 @@ static int fscanAndExpandMacros(FILE *readPtr, FILE *writePtr, Tree *binTree)
 			if (getWord(tempWord, MAX_LINE_LEN+1, readPtr)<=0)
 				return EOF;
 
-			skipSpaces(readPtr);
-
 			/* Create a new macro and save it into the data structure */
 			macro = newMacro();
+			skipSpaces(readPtr);
 			setStartPosition(macro, ftell(readPtr));
-			binTree->root = addTreeNode(binTree->root, tempWord, macro);
+			addTreeNode(binTree, tempWord, macro);
 
 			/* Find the end of macro definition, and save the end of macro 
 			 * definition's file index to the new macro structure */
@@ -63,10 +63,9 @@ static int fscanAndExpandMacros(FILE *readPtr, FILE *writePtr, Tree *binTree)
 			continue;
 		}
 
-		/* If the first word is a previously defined macro, print the 
-		 * contents of the macro to writePtr with fprintMacro, otherwise 
-		 * print the line 'as is' and start the function over from the next line */
-		if ((macro = treeSearch(binTree->root, tempWord))!=NULL)
+		macro = getData(searchTreeNode(binTree, tempWord));
+
+		if (macro!=NULL)
 			fprintMacro(readPtr, writePtr, macro);
 		else
 			putStreamLine(readPtr, tempFilePosition, writePtr, ftell(writePtr));

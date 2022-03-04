@@ -1,22 +1,18 @@
 #ifndef _BINARY_TREE_H
 #define _BINARY_TREE_H
 #include <libraries.h>
+#include <treeNode.h>
 
-typedef struct treeNode {
-	char *key;
-	void *data;
-	struct treeNode *leftChild;
-	struct treeNode *rightChild;
-} TreeNode;
+typedef struct binaryTree Tree;
 
-typedef struct binaryTree {
-	TreeNode *root;	
-} Tree;
-
+/* De/Constructors: */
 Tree *newTree();
-TreeNode *newTreeNode(char *key, void *data);
-TreeNode *addTreeNode(TreeNode *root, char *key, void *data);
-void *treeSearch(TreeNode *root, char *key);
-void deleteTree(Tree *tree);
+void deleteTree(Tree *tree, void (*deleteData)());
+
+/* Setters: */
+void addTreeNode(Tree *tree, char *key, void *data);
+
+/* Getters: */
+TreeNode *searchTreeNode(Tree *tree, char *key);
 
 #endif
