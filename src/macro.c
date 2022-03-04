@@ -1,15 +1,22 @@
 #include <macro.h>
 
+struct macro{
+	int startPos;
+	int endPos;
+	/* add more stuff here later maybe */
+};
+
+/* De/Constructor: */
 Macro *newMacro()
 {
-	Macro *ptr = NULL;
+	Macro *newp = NULL;
 
-	if(!(ptr = (Macro *) malloc(sizeof(Macro))))
+	if(!(newp = (Macro *) malloc(sizeof(Macro))))
 		return NULL;
 
-	ptr->startPos = -1;
-	ptr->endPos = -1;
-	return ptr;
+	setStartPosition(newp, 0);
+	setEndPosition(newp, 0);
+	return newp;
 }
 
 void deleteMacro(Macro *macro)
@@ -17,6 +24,41 @@ void deleteMacro(Macro *macro)
 	free(macro);
 }
 
+/* Setters: */
+void setStartPosition(Macro *macro, int position)
+{
+	if (!macro)
+		return;
+
+	macro->startPos = position;
+}
+
+void setEndPosition(Macro *macro, int position)
+{
+	if (!macro)
+		return;
+
+	macro->endPos = position;
+}
+
+/* Getters: */
+int getStartPosition(Macro *macro)
+{
+	if (!macro)
+		return 0;
+
+	return macro->startPos;
+}
+
+int getEndPosition(Macro *macro)
+{
+	if (!macro)
+		return 0;
+
+	return macro->endPos;
+}
+
+/* Additional Functions: */
 void fprintMacro(FILE *readPtr, FILE *writePtr, Macro *macro)
 {
 	int32_t tempReadPosition;
@@ -27,6 +69,6 @@ void fprintMacro(FILE *readPtr, FILE *writePtr, Macro *macro)
 
 	tempReadPosition = ftell(readPtr);
 	
-	copyStream(readPtr, macro->startPos, macro->endPos, writePtr, ftell(writePtr));
+	copyStream(readPtr, getStartPosition(macro), getEndPosition(macro), writePtr, ftell(writePtr));
 	fseek(readPtr, tempReadPosition, SEEK_SET);
 }
