@@ -1,4 +1,3 @@
-#include "treeNode.h"
 #include <binaryTree.h>
 
 struct binaryTree {
