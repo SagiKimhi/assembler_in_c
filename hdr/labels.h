@@ -10,6 +10,14 @@
 
 typedef struct label Label;
 
+typedef enum {
+    DATA,
+    STRING,
+    ENTRY,
+    EXTERN,
+    CODE
+} LabelType;
+
 /* ----------------------------------------------------------------	*
  *							De/Constructor							*
  * ----------------------------------------------------------------	*/
