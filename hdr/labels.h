@@ -49,6 +49,12 @@ uint16_t getBaseAddress(Label *label);
  * actual address. Returns 0 if the argument is a NULL pointer. */
 uint16_t getOffset(Label *label);
 
+/** @brief Returns the tyupe of the label as LabelType(Data, String, Entry, Extern, Code).
+*   @param label the label to get the type of.
+*   @return the label type.
+*/
+
+LabelType getType(Label *label);
 /* ----------------------------------------------------------------	*
  *						Additional Functions						*
  * ----------------------------------------------------------------	*/

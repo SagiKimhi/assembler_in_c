@@ -77,6 +77,11 @@ uint16_t getOffset(Label *label)
 
 	return label->offset;
 }
+
+LabelType getType(Label *label)
+{
+	return label->type;
+}
 /* ----------------------------------------------------------------	*/
 
 
