@@ -1,8 +1,9 @@
+#include "bucket.h"
+#include "libraries.h"
 #include <treeNode.h>
 
 struct treeNode {
-	char *key;
-	void *data;
+	Bucket *bucket;
 	struct treeNode *leftChild;
 	struct treeNode *rightChild;
 };
@@ -10,26 +11,21 @@ struct treeNode {
 /* ----------------------------------------------------------------	*
  *							De/Constructor							*
  * ----------------------------------------------------------------	*/
-/* newTreeNode: Allocates space for a new treeNode struct in memory and 
- * instantiates it by the key and data provided as arguments.
+/* newTreeNode: Allocates space for a new treeNode struct in memory and instantiates 
+ * it with the key and data provided as arguments using the newBucket function.
  * Returns a pointer to the new object upon success, or NULL upon failure. */
 TreeNode *newTreeNode(char *key, void *data)
 {
 	TreeNode *newp;
 
-	if (!key)
-		return NULL;
-
 	if (!(newp = (TreeNode *) malloc(sizeof(TreeNode))))
 		return NULL;
 
-	if (!(newp->key = (char *) malloc(strlen(key)+1))) {
+	if (!(newp->bucket = newBucket(key, data))) {
 		free(newp);
 		return NULL;
 	}
 
-	strcpy(newp->key, key);
-	setData(newp, data);
 	setLeftChild(newp, NULL);
 	setRightChild(newp, NULL);
 
@@ -37,12 +33,12 @@ TreeNode *newTreeNode(char *key, void *data)
 }
 
 /* deleteTreeNode: Free a treeNode struct from memory */
-void deleteTreeNode(TreeNode *node)
+void deleteTreeNode(TreeNode *node, voidOperationPtr deleteData)
 {
 	if (!node)
 		return;
 
-	free(node->key);
+	deleteBucket(node->bucket, deleteData);
 	free(node);
 }
 /* ----------------------------------------------------------------	*/
@@ -50,13 +46,13 @@ void deleteTreeNode(TreeNode *node)
 /* ----------------------------------------------------------------	*
  *								Setters								*
  * ----------------------------------------------------------------	*/
-/* setData: sets the TreeNode's data pointer to point to data. */
-void setData(TreeNode *node, void *data)
+/* setData: sets the TreeNode's bucket data pointer to point to data. */
+void setTreeNodeData(TreeNode *node, void *data)
 {
 	if (!node)
 		return;
 
-	node->data = data;
+	setBucketData(node->bucket, data);
 }
 
 /* setLeftChild: sets the TreeNode's leftChild pointer to point to child */
@@ -82,22 +78,22 @@ void setRightChild(TreeNode *node, TreeNode *child)
  *								Getters								*
  * ----------------------------------------------------------------	*/
 /* getKey: returns a pointer to the node's key, or NULL if node is NULL. */
-char *getKey(TreeNode *node)
+const char *getTreeNodeKey(TreeNode *node)
 {
 	if (!node)
 		return NULL;
 
-	return node->key;
+	return getBucketKey(node->bucket);
 }
 
 /* getData: returns a pointer to the data which node points to.
  * Returns NULL if node is NULL. */
-void *getData(TreeNode *node)
+void *getTreeNodeData(TreeNode *node)
 {
 	if (!node)
 		return NULL;
 
-	return node->data;
+	return getBucketData(node->bucket);
 }
 
 /* getLeftChild: Returns a TreeNode pointer to the node's left child

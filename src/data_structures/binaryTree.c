@@ -1,10 +1,11 @@
 #include <binaryTree.h>
 
+
 struct binaryTree {
 	TreeNode *root;	
 };
 
-static void deleteTree_rec(TreeNode *root, operation_ptr deleteData);
+static void deleteTree_rec(TreeNode *root, voidOperationPtr deleteData);
 static TreeNode *addTreeNode_rec(TreeNode *root, char *key, void *data);
 static TreeNode *searchTreeNode_rec(TreeNode *root, char *key);
 
@@ -26,9 +27,11 @@ Tree *newTree()
 }
 
 /* deleteTree: Free a binaryTree struct from memory including the root
- * and all of it's children. if deleteData is not null, that data stored
- * in the tree nodes will also be deleted using the function it points to. */
-void deleteTree(Tree *tree, operation_ptr deleteData)
+ * and all of it's children. if deleteData is not null, the data stored
+ * in the tree nodes will also be deleted using the function it points to. 
+ * The deletion operation for each individual node of the tree is done
+ * by calling the deleteTreeNode function for each individual TreeNode. */
+void deleteTree(Tree *tree, voidOperationPtr deleteData)
 {
 	if (!tree)
 		return;
@@ -72,18 +75,14 @@ TreeNode *searchTreeNode(Tree *tree, char *key)
 /* deleteTree_rec: A private function used by deleteTree to recursively
  * go through the root and children of the tree structure and free
  * them from memory. data will also be free'd if the deleteData is not NULL. */
-static void deleteTree_rec(TreeNode *root, operation_ptr deleteData)
+static void deleteTree_rec(TreeNode *root, voidOperationPtr deleteData)
 {
 	if (!root)
 		return;
 
 	deleteTree_rec(getRightChild(root), deleteData);
 	deleteTree_rec(getLeftChild(root), deleteData);
-	
-	if (deleteData!=NULL)
-		deleteData(getData(root));
-
-	deleteTreeNode(root);
+	deleteTreeNode(root, deleteData);
 }
 
 /* addTreeNode_rec: A private function used by addTreeNode to recursively
@@ -97,7 +96,7 @@ static TreeNode *addTreeNode_rec(TreeNode *root, char *key, void *data)
 	if (!root)
 		return newTreeNode(key, data);
 
-	if (!(compare = strcmp(getKey(root), key)))
+	if (!(compare = strcmp(getTreeNodeKey(root), key)))
 		return root;
 
 	if (compare<0)
@@ -118,7 +117,7 @@ static TreeNode *searchTreeNode_rec(TreeNode *root, char *key)
 	if (!root)
 		return NULL;
 
-	if (!(compare = strcmp(getKey(root), key)))
+	if (!(compare = strcmp(getTreeNodeKey(root), key)))
 		return root;
 
 	if (compare<0)
