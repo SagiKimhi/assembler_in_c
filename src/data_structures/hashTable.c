@@ -1,5 +1,11 @@
 #include <hashTable.h>
 
+struct hashTable {
+	Bucket **bucket;
+	size_t mCount;
+	size_t tableSize;
+};
+
 const float MAX_LOAD_FACTOR = 0.75;
 const float OPTIMAL_LOAD_FACTOR = 0.15;
 

@@ -7,7 +7,7 @@ typedef struct bucket Bucket;
 /* ----------------------------------------------------------------	*
  *							De/Constructor							*
  * ----------------------------------------------------------------	*/
-/* newBucket: Allocates memory for a new bucket struct object. 
+/* @brief newBucket: Allocates memory for a new bucket struct object. 
  * The bucket's key will be set to key and it's data will point to data.
  *
  * @param key The name/key for this bucket object. 
@@ -16,7 +16,7 @@ typedef struct bucket Bucket;
  * or a null pointer if any failure occured during the creation process. */
 Bucket *newBucket(char *key, void *data);
 
-/* deleteBucket: Frees a Bucket object from memory. the data which bucket points
+/* @brief deleteBucket: Frees a Bucket object from memory. the data which bucket points
  * to will also be freed if a non NULL void function pointer is passed as parameter. 
  *
  * @param bucket The bucket object to be freed from memory.
@@ -28,7 +28,7 @@ void deleteBucket(Bucket *bucket, voidOperationPtr deleteData);
 /* ----------------------------------------------------------------	*
  *								Setters								*
  * ----------------------------------------------------------------	*/
-/* setBucketData: sets the data pointer of bucket to point to data. 
+/* @brief setBucketData: sets the data pointer of bucket to point to data. 
  *
  * @param bucket The Bucket object to be set. 
  * @param data The data object which bucket's data pointer will point to */
@@ -37,13 +37,13 @@ void setBucketData(Bucket *bucket, void *data);
 /* ----------------------------------------------------------------	*
  *								Getters								*
  * ----------------------------------------------------------------	*/
-/* getBucketKey: returns a const char pointer to the bucket's key. 
+/* @brief getBucketKey: returns a const char pointer to the bucket's key. 
  *
  * @param bucket The Bucket object which holds they key to be returned. 
  * @return A const char pointer to bucket's key */
 const char *getBucketKey(Bucket *bucket);
 
-/* getBucketData: returns the data pointed to by bucket's data pointer. 
+/* @brief getBucketData: returns the data pointed to by bucket's data pointer. 
  *
  * @param bucket The bucket object which holds the data to be returned.
  * @return Returns a void pointer to the data which bucket's data points to. */

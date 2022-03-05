@@ -7,11 +7,7 @@
 #define TABLE_SIZE 17
 #endif
 
-typedef struct hash_table {
-	Bucket **bucket;
-	size_t mCount;
-	size_t tableSize;
-} HashTable;
+typedef struct hashTable HashTable;
 
 HashTable *newHashTable(int size);
 void *search(HashTable *hashTable, char *key);

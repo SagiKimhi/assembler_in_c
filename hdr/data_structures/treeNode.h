@@ -9,7 +9,7 @@ typedef struct treeNode TreeNode;
 /* ----------------------------------------------------------------	*
  *							De/Constructor							*
  * ----------------------------------------------------------------	*/
-/* newTreeNode: Allocates space for a new treeNode struct in memory and instantiates 
+/* @brief newTreeNode: Allocates space for a new treeNode struct in memory and instantiates 
  * it with the key and data provided as arguments using the newBucket function.
  * Returns a pointer to the new object upon success, or NULL upon failure. 
  * 
@@ -20,7 +20,7 @@ typedef struct treeNode TreeNode;
  * if an error occured during allocation and/or instantiation. */
 TreeNode *newTreeNode(char *key, void *data);
 
-/* deleteTreeNode: Free a treeNode struct from memory 
+/* @brief deleteTreeNode: Free a treeNode struct from memory 
  *
  * @param node The TreeNode to be freed from memory.
  * @param deleteData a void function pointer to a function to free
@@ -32,20 +32,20 @@ void deleteTreeNode(TreeNode *node, voidOperationPtr deleteData);
 /* ----------------------------------------------------------------	*
  *								Setters								*
  * ----------------------------------------------------------------	*/
-/* setData: sets the TreeNode's bucket data pointer to point to data. 
+/* @brief setData: sets the TreeNode's bucket data pointer to point to data. 
  * 
  * @param node The TreeNode which holds the bucket which will point to data.
  * @param data The data to be pointed to by TreeNode's bucket. 
  * @see setBucketData(Bucket *bucket, void *data) */
 void setTreeNodeData(TreeNode *node, void *data);
 
-/* setLeftChild: sets the TreeNode's leftChild pointer to point to child 
+/* @brief setLeftChild: sets the TreeNode's leftChild pointer to point to child 
  * 
  * @param node The TreeNode who's left child will be pointing to child.
  * @param child The child which node's left child will point to. */
 void setLeftChild(TreeNode *node, TreeNode *child);
 
-/* setRightChild: sets the TreeNode's rightChild pointer to point to child 
+/* @brief setRightChild: sets the TreeNode's rightChild pointer to point to child 
  * 
  * @param node The TreeNode who's right child will be pointing to child.
  * @param child The child which node's right child will point to. */
@@ -54,7 +54,7 @@ void setRightChild(TreeNode *node, TreeNode *child);
 /* ----------------------------------------------------------------	*
  *								Getters								*
  * ----------------------------------------------------------------	*/
-/* getKey: returns a pointer to the node's key, or NULL if node is NULL. 
+/* @brief getKey: returns a pointer to the node's key, or NULL if node is NULL. 
  * 
  * @param node The TreeNode object who's key is to be returned.
  * @return Returns a const char pointer to TreeNode's key through getBucketData,
@@ -62,7 +62,7 @@ void setRightChild(TreeNode *node, TreeNode *child);
  * @see getBucketData(Bucket *bucket).*/
 const char *getTreeNodeKey(TreeNode *node);
 
-/* getData: returns a pointer to the data which node points to.
+/* @brief getData: returns a pointer to the data which node points to.
  * Returns NULL if node is NULL. 
  *
  * @param node The TreeNode who's holding the data to be returned.
@@ -71,7 +71,7 @@ const char *getTreeNodeKey(TreeNode *node);
  * @see getBucketData(Bucket *bucket) */
 void *getTreeNodeData(TreeNode *node);
 
-/* getLeftChild: Returns a TreeNode pointer to the node's left child
+/* @brief getLeftChild: Returns a TreeNode pointer to the node's left child
  * which is currently set. Returns NULL if either leftChild or node are NULL.
  *
  * @param node The TreeNode who's left child is to be returned. 
@@ -79,7 +79,7 @@ void *getTreeNodeData(TreeNode *node);
  * is pointing to. NULL is returned upon failure or if the left child is NULL. */
 TreeNode *getLeftChild(TreeNode *node);
 
-/* getRightChild: Returns a TreeNode pointer to the node's right child which 
+/* @brief getRightChild: Returns a TreeNode pointer to the node's right child which 
  * is currently set. Returns NULL if either rightChild or node are NULL.
  *
  * @param node The TreeNode who's right child is to be returned. 

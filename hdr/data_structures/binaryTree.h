@@ -9,13 +9,13 @@ typedef struct binaryTree Tree;
 /* ----------------------------------------------------------------	*
  *							De/Constructor							*
  * ----------------------------------------------------------------	*/
-/* newTree: Allocates space for a new binaryTree struct in memory and instantiates it.
+/* @brief newTree: Allocates space for a new binaryTree struct in memory and instantiates it.
  * Returns a pointer to the new object upon success, or NULL upon failure. 
  *
  * @return Returns a pointer to a new empty binaryTree data structure object. */
 Tree *newTree();
 
-/* deleteTree: Free a binaryTree struct from memory including the root
+/* @brief deleteTree: Free a binaryTree struct from memory including the root
  * and all of it's children. if deleteData is not null, the data stored
  * in the tree nodes will also be deleted using the function it points to. 
  * The deletion operation for each individual node of the tree is done
@@ -30,7 +30,7 @@ void deleteTree(Tree *tree, voidOperationPtr deleteData);
 /* ----------------------------------------------------------------	*
  *								Setters								*
  * ----------------------------------------------------------------	*/
-/* addTreeNode: adds a new node to the tree structure. if a node with
+/* @brief addTreeNode: adds a new node to the tree structure. if a node with
  * the same key already exists in the tree a new node will NOT be created. 
  *
  * @param tree The binaryTree struct to add the new node to. 
@@ -42,7 +42,7 @@ void addTreeNode(Tree *tree, char *key, void *data);
 /* ----------------------------------------------------------------	*
  *								Getters								*
  * ----------------------------------------------------------------	*/
-/* searchTreeNode: Searches a treeNode in the tree structure by key.
+/* @brief searchTreeNode: Searches a treeNode in the tree structure by key.
  * returns a pointer to the node if such node exists, or NULL otherwise. 
  *
  * @param tree The binaryTree struct which contains the node to be searched for
