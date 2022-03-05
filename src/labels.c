@@ -6,6 +6,7 @@ static void setOffset(Label *label, uint16_t address);
 struct label {
 	uint16_t baseAddress;
 	uint16_t offset;
+	LabelType type
 };
 
 /* ----------------------------------------------------------------	*
@@ -14,7 +15,7 @@ struct label {
 /* newLabel: Allocates a new label object in memory and sets its base address
  * and offset according to address argument.
  * Returns a pointer to the new object upon success, or NULL upon failure. */
-Label *newLabel(uint16_t address)
+Label *newLabel(uint16_t address, LabelType type)
 {
 	Label *newp = (Label *) malloc(sizeof(Label));
 
@@ -22,6 +23,7 @@ Label *newLabel(uint16_t address)
 		return NULL;
 
 	setAddress(newp, address);
+	newp -> type = type;
 	return newp;
 }
 
