@@ -62,7 +62,7 @@ static int fscanAndExpandMacros(FILE *readPtr, FILE *writePtr, Tree *binTree)
 			continue;
 		}
 
-		macro = getData(searchTreeNode(binTree, tempWord));
+		macro = getTreeNodeData(searchTreeNode(binTree, tempWord));
 
 		if (macro!=NULL)
 			fprintMacro(readPtr, writePtr, macro);

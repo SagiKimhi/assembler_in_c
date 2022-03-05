@@ -20,5 +20,8 @@ typedef enum BooleanExpression {
 	True = 1
 } Bool;
 
+/* defines a type for a pointer to a function which returns void */
+typedef void (*voidOperationPtr)();
+
 #endif
 
