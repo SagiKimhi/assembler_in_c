@@ -26,12 +26,7 @@
 #define MAX_OPERATION_LEN 4
 #define NUMBER_OF_OPERATIONS 16
 
-typedef struct _Operation {
-	const char *opName;				/* Operation Name */
-	int32_t opCode;					/* OP Code */
-	int32_t functCode;				/* Funct Code */
-	int numOfOperands;				/* Operands */
-} Operation;
+typedef struct Operation Operation;
 
 extern const Operation Operations[NUMBER_OF_OPERATIONS];
 

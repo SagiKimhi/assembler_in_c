@@ -9,8 +9,8 @@
 #include <binaryTree.h>
 #include <libIO.h>
 #include <sizes.h>
+#include <sentences.h>
 
 #define COMMENT_PREFIX ';'
-#define DIRECTIVE_PREFIX '.'
 
 #endif

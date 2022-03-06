@@ -8,6 +8,13 @@ const char OperationNames[NUMBER_OF_OPERATIONS][MAX_OPERATION_LEN+1] = {
 	LOAD_OPERATIONS(GENERATE_STRING)
 };
 
+struct Operation {
+	const char *opName;				/* Operation Name */
+	int32_t opCode;					/* OP Code */
+	int32_t functCode;				/* Funct Code */
+	int numOfOperands;				/* Operands */
+};
+
 const Operation Operations[NUMBER_OF_OPERATIONS] = {
 				/* 2 Operand operations: */
 	{	/* mov */

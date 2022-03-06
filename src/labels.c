@@ -6,7 +6,7 @@ static void setOffset(Label *label, uint16_t address);
 struct label {
 	uint16_t baseAddress;
 	uint16_t offset;
-	LabelType type
+	LabelType type;
 };
 
 /* ----------------------------------------------------------------	*
@@ -23,7 +23,8 @@ Label *newLabel(uint16_t address, LabelType type)
 		return NULL;
 
 	setAddress(newp, address);
-	newp -> type = type;
+	setLabelType(newp, type);
+
 	return newp;
 }
 
@@ -46,6 +47,14 @@ void setAddress(Label *label, uint16_t address)
 
 	setBaseAddress(label, address);
 	setOffset(label, address);
+}
+
+void setLabelType(Label *label, LabelType type)
+{
+	if (!label)
+		return;
+
+	label->type = type;
 }
 /* ----------------------------------------------------------------	*/
 
