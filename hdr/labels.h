@@ -7,6 +7,7 @@
 #define ADDRESS_BASE 16
 #define LOG_2_ADDRESS_BASE 4
 #define LABEL_FORMAT "%s:"
+#define LABEL_DEFINITION_SUFFIX ':'
 
 typedef struct label Label;
 
@@ -60,6 +61,6 @@ LabelType getType(Label *label);
  * ----------------------------------------------------------------	*/
 /* isValidLabelName: Checks if the expression is a valid label name.
  * Returns 1 if it is, otherwise returns 0. */
-int isValidLabelName(const char *expr);
+int isValidLabelDefinition(const char *expr);
 
 #endif

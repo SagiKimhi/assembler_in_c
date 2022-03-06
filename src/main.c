@@ -1,5 +1,7 @@
 #include <errors.h>
 #include <libraries.h>
+#include <firstPass.h>
+#include <binaryTree.h>
 #include <preprocessor.h>
 
 int main(int argc, char **argv)
@@ -8,6 +10,9 @@ int main(int argc, char **argv)
 	int arg;
 	FILE *wFilePtr, *rFilePtr;
 	char filename[FILENAME_MAX+1] = {0};
+
+	/* Data structure definitions */
+	Tree *symbolTree = newTree();
 
 	/* Ensure that command line args were provided */
 	if (argc == 1) {
@@ -43,6 +48,8 @@ int main(int argc, char **argv)
 
 		/* Start the preprocessor */
 		macroPreprocessor(rFilePtr, wFilePtr);
+
+		startFirstPass(rFilePtr, wFilePtr, symbolTree);
 
 		fclose(rFilePtr);
 		fclose(wFilePtr);

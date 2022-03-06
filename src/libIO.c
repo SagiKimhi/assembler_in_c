@@ -1,5 +1,34 @@
 #include <libIO.h>
 
+/* s_getWord: Scans a single non whitespace word from bufferIn and saves it
+ * into bufferOut. Returns the length of the word that was scanned upon success.
+ * Returns FAILURE (-1) upon failure, returns 0 if bufferIn's word was longer
+ * than the size specified by outSize. */
+int s_getWord(char *bufferIn, char *bufferOut, size_t outSize)
+{
+	int i, j;
+
+	if (!bufferIn || !bufferOut)
+		return FAILURE;
+
+	/* skip all spaces until reaching the first word in bufferOut */
+	for (i=0; isspace(bufferIn[i]); i++)
+		;
+
+	/* copy all non whitespace characters from bufferIn to bufferOut */
+	for (j=0; bufferIn[i] && j<outSize-1 && !isspace(bufferIn[i]); i++, j++)
+		bufferOut[j] = bufferIn[i];
+
+	bufferOut[j] = '\0';
+
+	/* if bufferIn[i] is not whitespace then word was longer than outSize */
+	if (!isspace(bufferIn[i]) && bufferIn[i]!='\0')
+		return 0;
+
+	return j;
+}
+
+
 /* getLine: scans a line of input from stream with a maximum length of size and saves it 
  * into buffer, including the newline character. This function also removes trailing
  * whitespaces and does not count trailing whitespaces as part of the line's length.
@@ -10,6 +39,7 @@
 int getLine(char *buffer, int size, FILE *stream)
 {
 	int i, c;
+	int inString = 0;
 
 	/* Skip spaces at the begining of the line */
 	if ((c=skipSpaces(stream))==EOF)
@@ -19,13 +49,19 @@ int getLine(char *buffer, int size, FILE *stream)
 		return 0;
 	
 	
-	for (i=0, c=fgetc(stream); c!=EOF && c!='\n' && i<(size-1); i++) {
+	for (i=0, c=fgetc(stream); c!=EOF && i<(size-1); i++, c=fgetc(stream)) {
 		buffer[i] = c;
 
+		/* TODO: check if escape sequence characters should be supported eg. \" */
+		if (c=='\"')
+			inString = !inString;
+
+		if (inString)
+			continue;
+
 		if (isspace(c))
-			c = skipSpaces(stream);
-		else
-			c = fgetc(stream);
+			if (c=='\n' || skipSpaces(stream)=='\n')
+				break;
 	}
 
 	/* If buffer is full and EOF was not reached */

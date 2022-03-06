@@ -3,6 +3,12 @@
 
 #include <libraries.h>
 
+/* s_getWord: Scans a single non whitespace word from bufferIn and saves it
+ * into bufferOut. Returns the length of the word that was scanned upon success.
+ * Returns FAILURE (-1) upon failure, returns 0 if bufferIn's word was longer
+ * than the size specified by outSize. */
+int s_getWord(char *bufferIn, char *bufferOut, size_t outSize);
+
 /* getLine: scans a line of input from stream with a maximum length of size and saves it 
  * into buffer, including the newline character. This function also removes trailing
  * whitespaces and does not count trailing whitespaces as part of the line's length.

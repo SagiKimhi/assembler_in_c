@@ -89,37 +89,41 @@ LabelType getType(Label *label)
  *						Additional Functions						*
  * ----------------------------------------------------------------	*/
 /* isValidLabelName: Checks if the expression is a valid label name.
- * Returns 1 if it is, otherwise returns 0. */
-int isValidLabelName(const char *expr)
+ * Returns 0 if it is, 
+ * otherwise returns one of the following nonzero values:
+ *	   -1: A null pointer argument
+ *		1: Label length is longer than the constant MAX_LABEL_LEN 
+ *		2: Invalid label character 
+ *		3: Label name is a saved keyword */
+int isValidLabelDefinition(const char *expr)
 {
-	char tempC = 0;
-	char temp[MAX_LABEL_LEN+1] = {0};
-	const char testFormat[] = LABEL_FORMAT" %c";
+	int i=0;
+	char labelName[MAX_LABEL_LEN+1] = {0};
 
-	if (!expr || !(*expr) || strlen(expr)>MAX_LABEL_LEN)
-		return 0;
+	if (!expr || !(*expr))
+		return FAILURE;
 
-	/* Scan the label name without the ':' character into temp
-	 * while making sure expression is of the correct format */
-	if (sscanf(expr, testFormat, temp, &tempC)!=1)
-		return 0;
-
-	/* Make sure the scanned label name is not a saved keyword */
-	if (searchOperation(temp)!=FAILURE || isRegister(temp))
-		return 0;
+	if (strlen(expr)>MAX_LABEL_LEN)
+		return 1;
 
 	/* The following conditions ensure that the label's name is completely 
 	 * alphanumeric and that the first character is alphabetic: */
 	if (!isalpha(*expr))
-		return 0;
+		return 2;
 
 	while (*expr && isalnum(*expr))
-		expr++;
+		labelName[i++] = *expr++;
 	
-	if (*expr!=':' || *(expr+1)=='\0')
-		return 0;
+	labelName[i] = '\0';
 
-	return 1;
+	if (*expr!=LABEL_DEFINITION_SUFFIX || *(expr+1)!='\0')
+		return 2;
+
+	/* Make sure the scanned label name is not a saved keyword */
+	if (searchOperation(labelName)!=FAILURE || isRegister(labelName))
+		return 3;
+
+	return 0;
 }
 /* ----------------------------------------------------------------	*/
 
