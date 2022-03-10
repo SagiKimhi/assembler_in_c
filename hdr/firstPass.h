@@ -11,6 +11,8 @@
 #include <sizes.h>
 #include <sentences.h>
 
-#define COMMENT_PREFIX ';'
+/* Error Flags */
+#define DATA_FLAG_INVALID_VALUE 0x1
+#define DATA_FLAG_INVALID_TYPE 0x2
 
 #endif

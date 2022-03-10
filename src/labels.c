@@ -22,7 +22,7 @@ Label *newLabel(uint16_t address, LabelType type)
 	if (!newp)
 		return NULL;
 
-	setAddress(newp, address);
+	setLabelAddress(newp, address);
 	setLabelType(newp, type);
 
 	return newp;
@@ -40,7 +40,7 @@ void deleteLabel(Label *label)
  *								Setters								*
  * ----------------------------------------------------------------	*/
 /* setAddress: update label's base address and offset according to address */
-void setAddress(Label *label, uint16_t address)
+void setLabelAddress(Label *label, uint16_t address)
 {
 	if (!label)
 		return;
@@ -97,7 +97,7 @@ LabelType getType(Label *label)
 /* ----------------------------------------------------------------	*
  *						Additional Functions						*
  * ----------------------------------------------------------------	*/
-/* isValidLabelName: Checks if the expression is a valid label name.
+/* isValidLabelDefinition: Checks if the expression is a valid label name.
  * Returns 0 if it is, 
  * otherwise returns one of the following nonzero values:
  *	   -1: A null pointer argument
@@ -106,33 +106,54 @@ LabelType getType(Label *label)
  *		3: Label name is a saved keyword */
 int isValidLabelDefinition(const char *expr)
 {
-	int i=0;
+	int flags, i;
 	char labelName[MAX_LABEL_LEN+1] = {0};
+
+	flags = i = 0;
 
 	if (!expr || !(*expr))
 		return FAILURE;
 
-	if (strlen(expr)>MAX_LABEL_LEN)
-		return 1;
-
-	/* The following conditions ensure that the label's name is completely 
-	 * alphanumeric and that the first character is alphabetic: */
-	if (!isalpha(*expr))
-		return 2;
-
-	while (*expr && isalnum(*expr))
-		labelName[i++] = *expr++;
+	while (*expr && *expr!=LABEL_DEFINITION_SUFFIX) {
+		if (i<MAX_LABEL_LEN)
+			labelName[i++] = *expr++;
+		else
+			flags |= INVALID_LABEL_LEN;
+	}
 	
 	labelName[i] = '\0';
 
 	if (*expr!=LABEL_DEFINITION_SUFFIX || *(expr+1)!='\0')
-		return 2;
+		flags |= MISSING_LABEL_DEFINITION_SUFFIX;
 
-	/* Make sure the scanned label name is not a saved keyword */
-	if (searchOperation(labelName)!=FAILURE || isRegister(labelName))
-		return 3;
+	flags |= isValidLabelTag(labelName);
 
-	return 0;
+	return flags;
+}
+
+int isValidLabelTag(const char *expr)
+{
+	int flags = 0;
+	const char *ptr = expr;
+
+	if (!expr || !(*expr))
+		return FAILURE;
+
+	if (!isalpha(*ptr))
+		flags |= INVALID_LABEL_SYNTAX;
+
+	while (isalnum(*++ptr));
+
+	if (*ptr)
+		flags |= INVALID_LABEL_SYNTAX;
+
+	if (ptr-expr>=MAX_LABEL_LEN)
+		flags |= INVALID_LABEL_LEN;
+
+	if (searchOperation(expr)!=FAILURE || isRegister(expr))
+		flags |= INVALID_LABEL_NAME;
+
+	return flags;
 }
 /* ----------------------------------------------------------------	*/
 

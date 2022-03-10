@@ -3,6 +3,7 @@
 
 #include <libraries.h>
 #include <operations.h>
+#include <addressingModes.h>
 
 #define ADDRESS_BASE 16
 #define LOG_2_ADDRESS_BASE 4
@@ -12,6 +13,7 @@
 typedef struct label Label;
 
 typedef enum {
+    UNKNOWN,
     DATA,
     STRING,
     ENTRY,
@@ -25,7 +27,7 @@ typedef enum {
 /* newLabel: Allocates a new label object in memory and sets its base address
  * and offset according to address argument.
  * Returns a pointer to the new object upon success, or NULL upon failure. */
-Label *newLabel(uint16_t address);
+Label *newLabel(uint16_t address, LabelType type);
 
 /* deleteLabel: free a label object previously created by newLabel from memory */
 void deleteLabel(Label *label);
@@ -34,7 +36,9 @@ void deleteLabel(Label *label);
  *								Setters								*
  * ----------------------------------------------------------------	*/
 /* setAddress: update label's base address and offset according to address */
-void setAddress(Label *label, uint16_t address);
+void setLabelAddress(Label *label, uint16_t address);
+
+void setLabelType(Label *label, LabelType type);
 
 /* ----------------------------------------------------------------	*
  *								Getters								*
@@ -54,13 +58,15 @@ uint16_t getOffset(Label *label);
 *   @param label the label to get the type of.
 *   @return the label type.
 */
+LabelType getLabelType(Label *label);
 
-LabelType getType(Label *label);
 /* ----------------------------------------------------------------	*
  *						Additional Functions						*
  * ----------------------------------------------------------------	*/
-/* isValidLabelName: Checks if the expression is a valid label name.
+/* isValidLabelDefinition: Checks if the expression is a valid label name.
  * Returns 1 if it is, otherwise returns 0. */
 int isValidLabelDefinition(const char *expr);
+
+int isValidLabelTag(const char *expr);
 
 #endif

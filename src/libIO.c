@@ -1,10 +1,40 @@
 #include <libIO.h>
 
+int getToken(char *dest, size_t buffSize, const char *str)
+{
+	int inString = 0, i = 0, j = 0;
+
+	if (!str || !dest || !buffSize)
+		return FAILURE;
+
+	while (isspace(str[i])) 
+		i++;
+
+	while (j<(buffSize-1) && str[i]) {
+		if (str[i] == '\"')
+			inString = !inString;
+
+		if (inString && str[i]=='\\' && str[i+1]=='\"')
+			i++;
+
+		if (!inString && (isspace(str[i]) || str[i]==OPERAND_SEPERATOR))
+			break;
+
+		dest[j++] = str[i++];
+	}
+
+	if (str[i]==OPERAND_SEPERATOR && !j)
+		dest[j++] = str[i];
+
+	dest[j] = '\0';
+	return i;
+}
+
 /* s_getWord: Scans a single non whitespace word from bufferIn and saves it
  * into bufferOut. Returns the length of the word that was scanned upon success.
  * Returns FAILURE (-1) upon failure, returns 0 if bufferIn's word was longer
  * than the size specified by outSize. */
-int s_getWord(char *bufferIn, char *bufferOut, size_t outSize)
+int s_getWord(const char *bufferIn, char *bufferOut, size_t outSize)
 {
 	int i, j;
 
@@ -50,17 +80,17 @@ int getLine(char *buffer, int size, FILE *stream)
 	
 	
 	for (i=0, c=fgetc(stream); c!=EOF && i<(size-1); i++, c=fgetc(stream)) {
-		buffer[i] = c;
-
-		/* TODO: check if escape sequence characters should be supported eg. \" */
-		if (c=='\"')
+		/* This condition allows support of escape sequence characters by 
+		 * not changing inString state when reside inside a string definition */
+		if (c=='\"' && (!inString || buffer[i]!='\\'))
 			inString = !inString;
+
+		buffer[i] = c;
 
 		if (inString)
 			continue;
 
-		if (isspace(c))
-			if (c=='\n' || skipSpaces(stream)=='\n')
+		if (isspace(c) && (c=='\n' || skipSpaces(stream)=='\n'))
 				break;
 	}
 

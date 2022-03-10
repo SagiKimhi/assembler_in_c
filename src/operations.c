@@ -8,13 +8,6 @@ const char OperationNames[NUMBER_OF_OPERATIONS][MAX_OPERATION_LEN+1] = {
 	LOAD_OPERATIONS(GENERATE_STRING)
 };
 
-struct Operation {
-	const char *opName;				/* Operation Name */
-	int32_t opCode;					/* OP Code */
-	int32_t functCode;				/* Funct Code */
-	int numOfOperands;				/* Operands */
-};
-
 const Operation Operations[NUMBER_OF_OPERATIONS] = {
 				/* 2 Operand operations: */
 	{	/* mov */
@@ -135,34 +128,4 @@ int searchOperation(const char *opName)
 				return i;
 
 	return FAILURE;
-}
-
-int32_t getOpCode(const char *opName)
-{
-	int i;
-
-	if ((i=searchOperation(opName))==FAILURE)
-		return FAILURE;
-
-	return Operations[i].opCode;
-}
-
-int32_t getFunctCode(const char *opName)
-{
-	int i;
-
-	if ((i=searchOperation(opName))==FAILURE)
-		return FAILURE;
-
-	return Operations[i].functCode;
-}
-
-int getNumOfOperands(const char *opName)
-{
-	int i;
-
-	if ((i=searchOperation(opName))==FAILURE)
-		return FAILURE;
-
-	return Operations[i].numOfOperands;
 }

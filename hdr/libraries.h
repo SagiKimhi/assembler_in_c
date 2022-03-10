@@ -6,6 +6,7 @@
 #include <ctype.h>
 #include <sizes.h>
 #include <limits.h>
+#include <errors.h>
 #include <encodeBits.h>
 
 #define FAILURE -1
