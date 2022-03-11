@@ -21,9 +21,9 @@
 
 typedef enum {
 	LOAD_ADRESSING_MODES(GENERATE_ENUM)
-} AddressingMode_t;
+} AddressingMode;
 
-int getAdditionalMemoryWords(AddressingMode_t mode);
+int getAdditionalMemoryWords(AddressingMode mode);
 int getAddressingMode(const char *expr);
 int isRegister(const char *expr);
 int scanRegister(const char *expr, int *reg);

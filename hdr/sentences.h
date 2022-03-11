@@ -1,9 +1,10 @@
 #ifndef _SENTENCES_H
 #define _SENTENCES_H
 
-#include <libraries.h>
 #include <libIO.h>
+#include <libraries.h>
 #include <operations.h>
+#include <labels.h>
 
 #define DIRECTIVE_TOKEN_PREFIX '.'
 #define START_DATA_DEFINITION ".data"
@@ -21,5 +22,7 @@ typedef enum SentenceTypes {
 } SentenceType;
 
 SentenceType identifySentenceType(const char *token);
+int checkInstructionSentence(const char *operation, const char *sentence, 
+							uint32_t *instructionCounter, uint32_t lineNumber);
 
 #endif

@@ -3,7 +3,7 @@
 
 const char INDEX_DELIMITERS[] = "[]";
 
-int getAdditionalMemoryWords(AddressingMode_t mode)
+int getAdditionalMemoryWords(AddressingMode mode)
 {
 	switch (mode) {
 	case IMMEDIATE:

@@ -1,4 +1,23 @@
+#include "addressingModes.h"
 #include <operations.h>
+
+#define LOAD_OPERATIONS(OPERATION)\
+	OPERATION(mov),\
+	OPERATION(cmp),\
+	OPERATION(add),\
+	OPERATION(sub),\
+	OPERATION(lea),\
+	OPERATION(clr),\
+	OPERATION(not),\
+	OPERATION(inc),\
+	OPERATION(dec),\
+	OPERATION(jmp),\
+	OPERATION(bne),\
+	OPERATION(jsr),\
+	OPERATION(red),\
+	OPERATION(prn),\
+	OPERATION(rts),\
+	OPERATION(stop)
 
 enum OperationEnums {
 	LOAD_OPERATIONS(GENERATE_ENUM)
@@ -128,4 +147,75 @@ int searchOperation(const char *opName)
 				return i;
 
 	return FAILURE;
+}
+
+int isValidOperationIndex(int operationIndex)
+{
+	return (!(operationIndex<0 || operationIndex>NUMBER_OF_OPERATIONS));
+}
+
+int getOperationMemoryWords(int operationIndex)
+{
+	if (!isValidOperationIndex(operationIndex))
+		return 0;
+
+	return (Operations[operationIndex].functCode!=NONE ? 1: 2);
+}
+
+int isLegalOriginAddressingMode(const int operationIndex, 
+								AddressingMode addressingMode)
+{
+	switch (operationIndex) {
+		/* Every addressing mode is legal */
+		case mov: case cmp: 
+		case add: case sub:
+			return 1;
+
+		/* only direct and index are legal */
+		case lea:
+			switch (addressingMode) {
+				case DIRECT: case INDEX:
+					return 1;
+				default: 
+					return 0;
+			}
+
+		default:
+			return 0;
+	}
+}
+
+int isLegalDestAddressingMode(const int operationIndex, 
+								AddressingMode addressingMode)
+{
+	switch (operationIndex) {
+		/* Every addressing mode is legal */
+		case cmp: case prn:
+			return 1;
+
+		/* only direct, index, and register direct are legal */
+		case mov: case add: case sub: case lea: case clr: 
+		case not: case inc: case dec: case red:
+			switch (addressingMode) {
+				case DIRECT: case INDEX: 
+				case REGISTER_DIRECT:
+					return 1;
+
+				default:
+					return 0; 
+			}
+
+		/* only direct and index are legal */
+		case jmp: case bne: case jsr:
+			switch (addressingMode) {
+				case DIRECT: case INDEX:
+					return 1;
+
+				default: 
+					return 0;
+			}
+
+		default:
+			return 0;
+	}
 }
