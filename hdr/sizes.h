@@ -1,6 +1,5 @@
 #ifndef _SIZES_H
 #define _SIZES_H
-#include <stdio.h>
 
 #define MAX_LINE_LEN 81			/* maximum length for a line of input, excluding '\0' */
 #define MAX_LABEL_LEN 32		/* maximum length for a label, excluding '\0' */

@@ -1,7 +1,5 @@
 #ifndef _lib_IO_H
 #define _lib_IO_H
-
-#include <stdarg.h>
 #include <libraries.h>
 
 #define COMMENT_PREFIX ';'

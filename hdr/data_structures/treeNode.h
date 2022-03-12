@@ -1,6 +1,5 @@
 #ifndef _TREE_NODE_H
 #define _TREE_NODE_H
-
 #include <libraries.h>
 #include <bucket.h>
 

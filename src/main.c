@@ -1,3 +1,4 @@
+#include "labels.h"
 #include <errors.h>
 #include <libraries.h>
 #include <firstPass.h>
@@ -49,10 +50,19 @@ int main(int argc, char **argv)
 		/* Start the preprocessor */
 		macroPreprocessor(rFilePtr, wFilePtr);
 
-		startFirstPass(rFilePtr, wFilePtr, symbolTree);
-
 		fclose(rFilePtr);
 		fclose(wFilePtr);
+
+		if (!(rFilePtr = fopen(filename, "r"))) {
+			__ERROR__INVALID_FILE_NAME(filename)
+			continue;
+		}
+
+		if (startFirstPass(rFilePtr, symbolTree))
+			printTree(stdout, symbolTree, printLabel);
+
+		deleteTree(symbolTree, deleteLabel);
+		fclose(rFilePtr);
 	}
 
 	return 0;

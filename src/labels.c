@@ -1,3 +1,4 @@
+#include "libraries.h"
 #include <labels.h>
 
 static void setBaseAddress(Label *label, uint16_t address);
@@ -7,6 +8,10 @@ struct label {
 	uint16_t baseAddress;
 	uint16_t offset;
 	LabelType type;
+};
+
+const char *LabelTypeStr[] = {
+	GENERATE_LABEL_TYPE(GENERATE_STRING)
 };
 
 /* ----------------------------------------------------------------	*
@@ -87,7 +92,7 @@ uint16_t getOffset(Label *label)
 	return label->offset;
 }
 
-LabelType getType(Label *label)
+LabelType getLabelType(Label *label)
 {
 	return label->type;
 }
@@ -104,29 +109,26 @@ LabelType getType(Label *label)
  *		1: Label length is longer than the constant MAX_LABEL_LEN 
  *		2: Invalid label character 
  *		3: Label name is a saved keyword */
-int isValidLabelDefinition(const char *expr)
+int isValidLabelDefinition(const char *expr, char dest[MAX_LABEL_LEN+1])
 {
-	int flags, i;
-	char labelName[MAX_LABEL_LEN+1] = {0};
-
-	flags = i = 0;
+	int flags = 0, i = 0;
 
 	if (!expr || !(*expr))
 		return FAILURE;
 
 	while (*expr && *expr!=LABEL_DEFINITION_SUFFIX) {
 		if (i<MAX_LABEL_LEN)
-			labelName[i++] = *expr++;
+			dest[i++] = *expr++;
 		else
 			flags |= INVALID_LABEL_LEN;
 	}
 	
-	labelName[i] = '\0';
+	dest[i] = '\0';
 
 	if (*expr!=LABEL_DEFINITION_SUFFIX || *(expr+1)!='\0')
 		flags |= MISSING_LABEL_DEFINITION_SUFFIX;
 
-	flags |= isValidLabelTag(labelName);
+	flags |= isValidLabelTag(dest);
 
 	return flags;
 }
@@ -154,6 +156,15 @@ int isValidLabelTag(const char *expr)
 		flags |= INVALID_LABEL_NAME;
 
 	return flags;
+}
+
+void printLabel(FILE *stream, Label *label)
+{
+	if (!stream || !label)
+		return;
+
+	fprintf(stream, "Type: %-6s\tBase address: %-4hu\tOffset:%-4hu\n", 
+			LabelTypeStr[getLabelType(label)], getBaseAddress(label), getOffset(label));
 }
 /* ----------------------------------------------------------------	*/
 

@@ -1,6 +1,5 @@
 #ifndef _ERRORS_H
 #define _ERRORS_H
-
 #include <stdio.h>
 
 #ifndef FAILURE
@@ -88,6 +87,6 @@ typedef enum AddressModeErrorFlags {
 }
 
 #define __ERROR__INVALID_COMMA(LINE_NUMBER) {\
-	fprintf(stderr, "Error: In line number %d - invalid comma.\n", LINE_NUMBER);\
+	fprintf(stderr, "Error: In line number %lu - invalid comma.\n", LINE_NUMBER);\
 }
 #endif

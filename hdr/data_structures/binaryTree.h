@@ -52,4 +52,5 @@ void addTreeNode(Tree *tree, char *key, void *data);
  * otherwise the function will return a NULL pointer. */
 TreeNode *searchTreeNode(Tree *tree, char *key);
 
+void printTree(FILE *stream, Tree *tree, voidOperationPtr printData);
 #endif

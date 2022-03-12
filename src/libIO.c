@@ -24,7 +24,7 @@ int getToken(char *dest, size_t buffSize, const char *str)
 	}
 
 	if (str[i]==OPERAND_SEPERATOR && !j)
-		dest[j++] = str[i];
+		dest[j++] = str[i++];
 
 	dest[j] = '\0';
 	return i;
@@ -87,10 +87,13 @@ int getLine(char *buffer, int size, FILE *stream)
 
 		buffer[i] = c;
 
+		if (c=='\n')
+			break;
+
 		if (inString)
 			continue;
 
-		if (isspace(c) && (c=='\n' || skipSpaces(stream)=='\n'))
+		if (isspace(c) && skipSpaces(stream)=='\n')
 				break;
 	}
 

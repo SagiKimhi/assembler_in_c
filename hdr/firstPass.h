@@ -1,6 +1,5 @@
 #ifndef _FIRST_PASS_H
 #define _FIRST_PASS_H
-
 #include <libraries.h>
 #include <labels.h>
 #include <addressingModes.h>
@@ -11,8 +10,6 @@
 #include <sizes.h>
 #include <sentences.h>
 
-/* Error Flags */
-#define DATA_FLAG_INVALID_VALUE 0x1
-#define DATA_FLAG_INVALID_TYPE 0x2
+int startFirstPass(FILE *inputStream, Tree *symbolTree);
 
 #endif

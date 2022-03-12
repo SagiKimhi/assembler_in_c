@@ -1,5 +1,4 @@
 #include <addressingModes.h>
-#include <string.h>
 
 const char INDEX_DELIMITERS[] = "[]";
 
@@ -13,7 +12,7 @@ int getAdditionalMemoryWords(AddressingMode mode)
 	case INDEX:
 		return 2;
 
-	case REGISTER_DIRECT:
+	default:
 		return 0;
 	}
 }

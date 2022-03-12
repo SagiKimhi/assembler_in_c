@@ -1,6 +1,5 @@
 #ifndef _ADDRESSING_MODES_H
 #define _ADDRESSING_MODES_H
-
 #include <libraries.h>
 
 #define LOAD_ADRESSING_MODES(OPERATION)\

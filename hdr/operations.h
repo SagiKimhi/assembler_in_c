@@ -1,6 +1,5 @@
 #ifndef _OPERATIONS_H
 #define _OPERATIONS_H
-
 #include <libraries.h>
 #include <encodeBits.h>
 #include <addressingModes.h>

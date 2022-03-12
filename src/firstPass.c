@@ -1,9 +1,4 @@
-#include "labels.h"
-#include "libIO.h"
-#include "sentences.h"
-#include "treeNode.h"
 #include <firstPass.h>
-#include <string.h>
 
 #define isComma(TOKEN)		((TOKEN) == OPERAND_SEPERATOR)
 #define isComment(TOKEN)	((TOKEN) == COMMENT_PREFIX)
@@ -31,13 +26,37 @@ int startFirstPass(FILE *inputStream, Tree *symbolTree)
 
 		if (!result) {
 		/* TODO: add error for line being longer than MAX_LINE_LEN */
+			fprintf(stderr, "Error in line %lu: line too long.\n", lineNumber);
 			continue;
 		}
 
 		nextTokenPtr = inputLine;
 		nextTokenPtr += getToken(token, MAX_LINE_LEN+1, inputLine);
 
-		if (!(*token) || isComment(*token))
+		if (isLineLabelDefinition(token)) {
+			if (isValidLabelDefinition(token, labelName)) {
+				/* TODO: invalid label def, print errors */
+				fprintf(stderr, "Error in line %lu: invalid label definition '%s'.\n", 
+						lineNumber, token);
+				validFlag = 0;
+			}
+			else {
+				label = getTreeNodeData(searchTreeNode(symbolTree, labelName));
+
+				if (label!=NULL) {
+					/* TODO: Label exists, print error */
+				fprintf(stderr, "Error in line %lu: label '%s' already exists.\n", 
+						lineNumber, labelName);
+					validFlag = 0;
+				}
+				else
+					labelFlag = 1;
+			}
+
+			nextTokenPtr += getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
+		}
+
+		if (isComment(*token))
 			continue;
 
 		if (isComma(*token)) {
@@ -45,113 +64,89 @@ int startFirstPass(FILE *inputStream, Tree *symbolTree)
 			continue;
 		}
 
-		if (isLineLabelDefinition(token)) {
-			if (isValidLabelDefinition(token)) {
-				/* TODO: invalid label def, print errors */
-				validFlag = 0;
-			}
-			else {
-				strncpy(labelName, token, strlen(token));
-				nextTokenPtr += getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
-				label = getTreeNodeData(searchTreeNode(symbolTree, labelName));
-
-				if (label!=NULL) {
-					if (getLabelType(label)!=ENTRY)
-						/* TODO: Label exists, print error */
-						validFlag = 0;
-				}
-				else if (!(*token)) {
-					/* TODO: print warning - empty label definition line */
-					continue;
-				}
-				else
-					labelFlag = 1;
-			}
-		}
-
-		result = identifySentenceType(token);
-
-		switch (result) {
+		switch (identifySentenceType(token)) {
 			case INVALID_SENTENCE:
-				/* TODO: Print error - unknown command */
+				/* TODO: Print error - unknown identifier. */
+				fprintf(stderr, "Error in line %lu: unknown identifier '%s'.\n", 
+						lineNumber, token);
 				validFlag = 0;
-				continue;
+				break;
 
 			case INSTRUCTION_SENTENCE:
-				if (!checkInstructionSentence(token, nextTokenPtr, 
+				if (!checkInstructionSentence(	token, nextTokenPtr, 
 												&instructionCounter, lineNumber))
 					validFlag = 0;
 
-				if (labelFlag) 
+				if (labelFlag)
 					addTreeNode(symbolTree, labelName, 
 								newLabel(instructionCounter, CODE));
-
-				continue;
+				
+				break;
 
 			case DIRECTIVE_DATA_SENTENCE:
 				if (labelFlag) 
 					addTreeNode(symbolTree, labelName, 
 								newLabel(dataCounter, DATA));
 
-				if (!checkDataSentence(nextTokenPtr, dataCounter))
+				if (!checkDirectiveSentence(nextTokenPtr, DIRECTIVE_DATA_SENTENCE,
+											&dataCounter, lineNumber				))
 					validFlag = 0;
 
-				continue;
+				break;
 
 			case DIRECTIVE_STRING_SENTENCE:
 				if (labelFlag) 
 					addTreeNode(symbolTree, labelName, 
 								newLabel(dataCounter, STRING));
 
-				if (!checkStringSentence(nextTokenPtr, dataCounter))
+				if (!checkDirectiveSentence(nextTokenPtr, DIRECTIVE_STRING_SENTENCE,
+											&dataCounter, lineNumber				))
 					validFlag = 0;
-
-				continue;
-
-			case DIRECTIVE_ENTRY_SENTENCE:
-				nextTokenPtr += getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
-
-				if (!(*token)) {
-					/* TODO: print error, empty entry sentence. */
-					validFlag = 0;
-					continue;
-				}
-
-				if (*token == OPERAND_SEPERATOR) {
-					/* TODO: print error, invalid comma */
-					validFlag = 0;
-				}
-				else if (isValidLabelTag(token)) {
-					/* TODO: print error, invalid label tag */
-					validFlag=0;
-				}
-
-				nextTokenPtr += getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
-
-				if (*token) {
-					/* TODO: print error: too many operands */
-					validFlag = 0;
-				}
 
 				break;
 
+			case DIRECTIVE_ENTRY_SENTENCE:
+				if (!checkDirectiveSentence(nextTokenPtr, DIRECTIVE_ENTRY_SENTENCE,
+											&dataCounter, lineNumber				))
+					validFlag = 0;
+				break;
+
 			case DIRECTIVE_EXTERN_SENTENCE:
-				if (checkExternSentence(nextTokenPtr)) {
+				if (!checkDirectiveSentence(nextTokenPtr, DIRECTIVE_ENTRY_SENTENCE,
+											&dataCounter, lineNumber				)) {
 					/* TODO: print error, invalid extern sentence */
 					validFlag = 0;
-					continue;
+					break;
 				}
 				
-				nextTokenPtr += getToken(labelName, MAX_LINE_LEN+1, nextTokenPtr);
+				getToken(labelName, MAX_LINE_LEN+1, nextTokenPtr);
 				label = getTreeNodeData(searchTreeNode(symbolTree, labelName));
 
 				if (label!=NULL && getLabelType(label)!=EXTERN) {
 					/* TODO: print error - label already defined in this file */
+					fprintf(stderr, "Error in line %lu: label '%s' is already defined "
+							"in this file and therefore cannot be defined as extern.\n", 
+							lineNumber, token);
 					validFlag = 0;
-					continue;
+					break;
 				}
 
 				addTreeNode(symbolTree, labelName, newLabel(0, EXTERN));
+				break;
+
+			case EMPTY_SENTENCE:
+				if (labelFlag)
+					/* TODO: print warning, empty label definition. */
+					fprintf(stderr, "Warning: empty label definition in line %lu for label: '%s'.\n", 
+							lineNumber, token);
+
+				break;
+
+			case COMMENT_SENTENCE:
+				fprintf(stderr, "Error in line %lu: comments may only start in the "
+						"begining of line.\n", lineNumber);
+					validFlag = 0;
+
 				break;
 		}
 	}
@@ -161,14 +156,5 @@ int startFirstPass(FILE *inputStream, Tree *symbolTree)
 /* isLineLabel: Returns whether or not the line defines a label. */
 static int isLineLabelDefinition(const char *token)
 {
-	return (token[strlen(token)] == LABEL_DEFINITION_SUFFIX);
-}
-
-static int isValidData(const char *token)
-{
-	char tempC = 0;
-	int16_t data = 0;
-	const char TEST_FORMAT[] = "%hd%c"; /* short int with no trailing nondigit chracters */
-
-	return (sscanf(token, TEST_FORMAT, &data, &tempC)==1);
+	return (token[strlen(token)-1] == LABEL_DEFINITION_SUFFIX);
 }

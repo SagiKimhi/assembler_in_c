@@ -1,3 +1,5 @@
+#include "libraries.h"
+#include "sizes.h"
 #include <binaryTree.h>
 
 
@@ -6,6 +8,7 @@ struct binaryTree {
 };
 
 static void deleteTree_rec(TreeNode *root, voidOperationPtr deleteData);
+static void printTree_rec(FILE *stream, TreeNode *root, voidOperationPtr printData);
 static TreeNode *addTreeNode_rec(TreeNode *root, char *key, void *data);
 static TreeNode *searchTreeNode_rec(TreeNode *root, char *key);
 
@@ -70,6 +73,17 @@ TreeNode *searchTreeNode(Tree *tree, char *key)
 /* ----------------------------------------------------------------	*/
 
 /* ----------------------------------------------------------------	*
+ *						Additional Functions						*
+ * ----------------------------------------------------------------	*/
+void printTree(FILE *stream, Tree *tree, voidOperationPtr printData)
+{
+	if (!stream || !tree || !tree->root)
+		return;
+
+	printTree_rec(stream, tree->root, printData);
+}
+
+/* ----------------------------------------------------------------	*
  *							Static Functions						*
  * ----------------------------------------------------------------	*/
 /* deleteTree_rec: A private function used by deleteTree to recursively
@@ -124,6 +138,22 @@ static TreeNode *searchTreeNode_rec(TreeNode *root, char *key)
 		return searchTreeNode_rec(getLeftChild(root), key);
 
 	return searchTreeNode_rec(getRightChild(root), key);
+}
+
+static void printTree_rec(FILE *stream, TreeNode *root, voidOperationPtr printData)
+{
+	if (!root)
+		return;
+
+	printTree_rec(stream, getLeftChild(root), printData);
+	printTree_rec(stream, getRightChild(root), printData);
+
+	fprintf(stream, "Key: %-*s\t", 32, getTreeNodeKey(root));
+
+	if (printData!=NULL)
+		printData(stream, getTreeNodeData(root));
+	else
+		fputc('\n', stream);
 }
 /* ----------------------------------------------------------------	*/
 

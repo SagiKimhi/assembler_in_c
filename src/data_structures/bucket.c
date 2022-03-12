@@ -94,6 +94,7 @@ static char *setBucketKey(Bucket *bucket, char *key)
 		return NULL;
 	
 	bucket->key = (char *) malloc(strlen(key)+1);
+	strcpy(bucket->key, key);
 
 	return bucket->key;
 }

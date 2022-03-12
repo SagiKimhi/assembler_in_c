@@ -1,6 +1,5 @@
 #ifndef _SENTENCES_H
 #define _SENTENCES_H
-
 #include <libIO.h>
 #include <libraries.h>
 #include <operations.h>
@@ -14,6 +13,8 @@
 
 typedef enum SentenceTypes {
 	INVALID_SENTENCE = FAILURE,
+	EMPTY_SENTENCE,
+	COMMENT_SENTENCE,
 	DIRECTIVE_DATA_SENTENCE,
 	DIRECTIVE_STRING_SENTENCE,
 	DIRECTIVE_ENTRY_SENTENCE,
@@ -24,5 +25,7 @@ typedef enum SentenceTypes {
 SentenceType identifySentenceType(const char *token);
 int checkInstructionSentence(const char *operation, const char *sentence, 
 							uint32_t *instructionCounter, uint32_t lineNumber);
+int checkDirectiveSentence(const char *sentence, SentenceType type,
+							uint32_t *dataCounter, uint32_t lineNumber);
 
 #endif

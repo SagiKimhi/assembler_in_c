@@ -1,6 +1,5 @@
 #ifndef _LABELS_H
 #define _LABELS_H
-
 #include <libraries.h>
 #include <operations.h>
 #include <addressingModes.h>
@@ -9,16 +8,17 @@
 #define LOG_2_ADDRESS_BASE 4
 #define LABEL_FORMAT "%s:"
 #define LABEL_DEFINITION_SUFFIX ':'
+#define GENERATE_LABEL_TYPE(OPERATION)\
+    OPERATION(DATA),\
+    OPERATION(STRING),\
+    OPERATION(ENTRY),\
+    OPERATION(EXTERN),\
+    OPERATION(CODE)
 
 typedef struct label Label;
 
-typedef enum {
-    UNKNOWN,
-    DATA,
-    STRING,
-    ENTRY,
-    EXTERN,
-    CODE
+typedef enum LabelTypes {
+    GENERATE_LABEL_TYPE(GENERATE_ENUM)
 } LabelType;
 
 /* ----------------------------------------------------------------	*
@@ -65,8 +65,9 @@ LabelType getLabelType(Label *label);
  * ----------------------------------------------------------------	*/
 /* isValidLabelDefinition: Checks if the expression is a valid label name.
  * Returns 1 if it is, otherwise returns 0. */
-int isValidLabelDefinition(const char *expr);
+int isValidLabelDefinition(const char *expr, char dest[MAX_LABEL_LEN+1]);
 
 int isValidLabelTag(const char *expr);
 
+void printLabel(FILE *stream, Label *label);
 #endif
