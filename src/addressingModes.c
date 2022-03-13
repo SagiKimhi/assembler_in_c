@@ -30,8 +30,8 @@ int getAddressingMode(const char *expr)
 	if (isRegister(expr))
 		return REGISTER_DIRECT;
 
-	if (!(temp=strchr(expr, INDEX_DELIMITERS[0])) || 
-		!(temp=strchr(temp, INDEX_DELIMITERS[1])))
+	if (!(temp=strrchr(expr, INDEX_DELIMITERS[0])) || 
+		!(temp=strrchr(temp, INDEX_DELIMITERS[1])))
 		return DIRECT;
 
 	return (temp[1]=='\0' ? INDEX: DIRECT);
@@ -98,13 +98,13 @@ int scanIndexExpression(char *expr, int *reg)
 	if (!expr || !reg)
 		return 0;
 
-	if (!(temp=strchr(expr, INDEX_DELIMITERS[0])))
+	if (!(temp=strrchr(expr, INDEX_DELIMITERS[0])))
 		return 0;
 
 	regString = temp+1;
 	labelLen = temp-expr;
 
-	if (!(temp = strchr(expr, INDEX_DELIMITERS[1])) || temp[1]!='\0')
+	if (!(temp=strrchr(temp, INDEX_DELIMITERS[1])) || temp[1])
 		return 0;
 
 	*temp = '\0';

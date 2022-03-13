@@ -15,7 +15,7 @@
 #define IMMEDIATE_EXPRESSION_PREFIX '#'
 #define REGISTER_DIRECT_EXPRESSION_PREFIX 'r'
 #define IMMEDIATE_FORMAT "#%hd"
-#define REGISTER_DIRECT_FORMAT "[r%hd]"
+#define REGISTER_DIRECT_FORMAT "r%hd"
 
 
 typedef enum {

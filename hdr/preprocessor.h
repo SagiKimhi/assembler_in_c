@@ -5,6 +5,6 @@
 #include <libraries.h>
 #include <binaryTree.h>
 
-void macroPreprocessor(FILE *read, FILE *write);
+int macroPreprocessor(const char *fileName);
 
 #endif

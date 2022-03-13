@@ -75,10 +75,10 @@ typedef enum AddressModeErrorFlags {
 	"Please make sure the correct file path was provided.\n", FILE_NAME);\
 }
 
-#define __ERROR__UNABLE_TO_CREATE_FILE {\
-	fprintf(stderr, "Error: unable to open/create a file.\n"\
+#define __ERROR__UNABLE_TO_CREATE_FILE(FILE_NAME) {\
+	fprintf(stderr, "Error: unable to open/create file %s\n"\
 	"This is an internal program error and is unrelated to the user.\n"\
-	"We are truly sorry for the inconvenience.\n");\
+	"We are truly sorry for the inconvenience.\n", FILE_NAME);\
 }
 
 #define __ERROR__FILE_NAME_TOO_LONG(FILE_NAME) {\

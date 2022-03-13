@@ -1,5 +1,5 @@
-#ifndef _FIRST_PASS_H
-#define _FIRST_PASS_H
+#ifndef _ASSEMBLER_H
+#define _ASSEMBLER_H
 #include <libraries.h>
 #include <labels.h>
 #include <addressingModes.h>
@@ -10,6 +10,6 @@
 #include <sizes.h>
 #include <sentences.h>
 
-int startFirstPass(FILE *inputStream, Tree *symbolTree);
+int startAssembler(const char *fileName);
 
 #endif

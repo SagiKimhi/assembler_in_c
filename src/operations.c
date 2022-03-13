@@ -158,7 +158,7 @@ int getOperationMemoryWords(int operationIndex)
 	if (!isValidOperationIndex(operationIndex))
 		return 0;
 
-	return (Operations[operationIndex].functCode!=NONE ? 1: 2);
+	return (!Operations[operationIndex].numOfOperands ? 1: 2);
 }
 
 int isLegalOriginAddressingMode(const int operationIndex, 

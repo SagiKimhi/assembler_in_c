@@ -1,4 +1,68 @@
+#include "sizes.h"
 #include <libIO.h>
+#include <string.h>
+
+void encodeToFile(FILE *stream, uint32_t address, int32_t code)
+{
+	int i;
+	char c;
+	int32_t temp;
+	const char FIRST_HEX_GROUP = 'A';
+	const char HEX_GROUP_SEPERATOR = '-';
+	const int BITS_IN_HALF_BYTE = 4;
+	const int NUM_OF_HEX_GROUPS = MEM_CELL_SIZE/BITS_IN_HALF_BYTE;
+	const int32_t FIRST_FOUR_BITS = 0xf;
+
+	if (!stream)
+		return;
+
+	if (address>=FIRST_MEMORY_ADDRESS)
+		fprintf(stream, "%lu\t", address);
+
+	for (i=0, c=FIRST_HEX_GROUP; i<NUM_OF_HEX_GROUPS; i++, c++) {
+
+		temp = (FIRST_FOUR_BITS & (code >> (MEM_CELL_SIZE - BITS_IN_HALF_BYTE)));
+		fprintf(stream, "%c%lX", c, temp);
+
+		if (i+1<NUM_OF_HEX_GROUPS)
+			fputc(HEX_GROUP_SEPERATOR, stream);
+
+		code <<= BITS_IN_HALF_BYTE;
+	}
+
+	fputc('\n', stream);
+}
+
+FILE *openFile(const char *fileName, const char *fileExtension, const char *mode)
+{
+	FILE *fp;
+	char *newFileName;
+	int fileNameLen, extensionLen;
+
+	if (!fileName || !fileExtension || !mode)
+		return NULL;
+
+	fileNameLen = strlen(fileName);
+	extensionLen = strlen(fileExtension);
+
+	if ((fileNameLen+extensionLen)>FILENAME_MAX) {
+		__ERROR__FILE_NAME_TOO_LONG(fileName);
+		return NULL;
+	}
+
+	newFileName = (char *) malloc(fileNameLen+extensionLen+1);
+
+	if (!newFileName)
+		return NULL;
+
+	sprintf(newFileName, "%s%s", fileName, fileExtension);
+
+	if (!(fp=fopen(newFileName, mode)))
+		perror("Error: ");
+
+	free(newFileName);
+	return fp;
+}
 
 int getToken(char *dest, size_t buffSize, const char *str)
 {

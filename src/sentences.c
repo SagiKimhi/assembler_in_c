@@ -144,6 +144,8 @@ int checkDirectiveSentence(const char *sentence, SentenceType type,
 				return 0;
 			}
 			numOfOperands++;
+			(*dataCounter)	+=	(type==DIRECTIVE_DATA_SENTENCE 
+								|| type==DIRECTIVE_STRING_SENTENCE) ? temp: 0;
 		}
 		else if (*token!=OPERAND_SEPERATOR) {
 			/* TODO: print error, expected seperator. */
@@ -154,8 +156,6 @@ int checkDirectiveSentence(const char *sentence, SentenceType type,
 
 		operandFlag		=	!operandFlag;
 		nextTokenPtr	+=	getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
-		(*dataCounter)	+=	(type==DIRECTIVE_DATA_SENTENCE ||
-							type==DIRECTIVE_STRING_SENTENCE) ? temp: 0;
 	}
 
 	if (operandFlag) {

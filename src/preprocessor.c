@@ -2,20 +2,42 @@
  * We may want to create an additional function called save macro
  * and replace it with the long macro saving process inside the expandMacros function
 */
+#include "binaryTree.h"
 #include <preprocessor.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 static int fscanAndExpandMacros(FILE *readPtr, FILE *writePtr, Tree *binTree);
 
 /* Also temporary until a data structure is decided for the preprocessor */
-void macroPreprocessor(FILE *read, FILE *write)
+int macroPreprocessor(const char *fileName)
 {
-	Tree *binTree = newTree();
+	Tree *binTree;
+	FILE *readPtr, *writePtr;
 
-	if (!read || !write)
-		return;
+	readPtr=openFile(fileName, SOURCE_FILE_EXTENSION, "r");
 
-	fscanAndExpandMacros(read, write, binTree);
+	if (!readPtr)
+		return EXIT_FAILURE;
+
+	writePtr=openFile(fileName, PREPROCESSED_FILE_EXTENSION, "w");
+
+	if (!writePtr) {
+		fclose(readPtr);
+		return EXIT_FAILURE;
+	}
+
+	if (!(binTree = newTree())) {
+		fclose(readPtr);
+		fclose(writePtr);
+		return EXIT_FAILURE;
+	}
+
+	fscanAndExpandMacros(readPtr, writePtr, binTree);
 	deleteTree(binTree, deleteMacro);
+	fclose(readPtr);
+	fclose(writePtr);
+	return EXIT_SUCCESS;
 }
 
 /* fscanAndExpandMacros: Scans macro definitions from the file pointed to by readPtr, and writes

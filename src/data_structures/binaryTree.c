@@ -147,13 +147,7 @@ static void printTree_rec(FILE *stream, TreeNode *root, voidOperationPtr printDa
 
 	printTree_rec(stream, getLeftChild(root), printData);
 	printTree_rec(stream, getRightChild(root), printData);
-
-	fprintf(stream, "Key: %-*s\t", 32, getTreeNodeKey(root));
-
-	if (printData!=NULL)
-		printData(stream, getTreeNodeData(root));
-	else
-		fputc('\n', stream);
+	printTreeNode(stream, root, printData);
 }
 /* ----------------------------------------------------------------	*/
 
