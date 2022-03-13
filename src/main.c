@@ -1,4 +1,3 @@
-#include "labels.h"
 #include <errors.h>
 #include <libraries.h>
 #include <firstPass.h>
@@ -12,9 +11,6 @@ int main(int argc, char **argv)
 	FILE *wFilePtr, *rFilePtr;
 	char filename[FILENAME_MAX+1] = {0};
 
-	/* Data structure definitions */
-	Tree *symbolTree = newTree();
-
 	/* Ensure that command line args were provided */
 	if (argc == 1) {
 		__ERROR__MISSING_ARGS(argv[0]);
@@ -23,6 +19,9 @@ int main(int argc, char **argv)
 
 	/* Begin assembling the files */
 	for (arg = 1; arg < argc; arg++) {
+		/* Data structure definitions */
+		Tree *symbolTree = newTree();
+
 		/* Make sure the filename's length is valid */
 		if (strlen(argv[arg])>(FILENAME_MAX-MAX_FILE_EXTENSION_LEN)) {
 			__ERROR__FILE_NAME_TOO_LONG(argv[arg])
