@@ -6,7 +6,11 @@ static void setOffset(Label *label, uint16_t address);
 struct label {
 	uint16_t baseAddress;
 	uint16_t offset;
-	LabelType type
+	LabelType type;
+};
+
+const char *LabelTypeStr[] = {
+	GENERATE_LABEL_TYPE(GENERATE_STRING)
 };
 
 /* ----------------------------------------------------------------	*
@@ -22,8 +26,9 @@ Label *newLabel(uint16_t address, LabelType type)
 	if (!newp)
 		return NULL;
 
-	setAddress(newp, address);
-	newp -> type = type;
+	setLabelAddress(newp, address);
+	setLabelType(newp, type);
+
 	return newp;
 }
 
@@ -39,13 +44,21 @@ void deleteLabel(Label *label)
  *								Setters								*
  * ----------------------------------------------------------------	*/
 /* setAddress: update label's base address and offset according to address */
-void setAddress(Label *label, uint16_t address)
+void setLabelAddress(Label *label, uint16_t address)
 {
 	if (!label)
 		return;
 
 	setBaseAddress(label, address);
 	setOffset(label, address);
+}
+
+void setLabelType(Label *label, LabelType type)
+{
+	if (!label)
+		return;
+
+	label->type = type;
 }
 /* ----------------------------------------------------------------	*/
 
@@ -78,8 +91,11 @@ uint16_t getOffset(Label *label)
 	return label->offset;
 }
 
-LabelType getType(Label *label)
+LabelType getLabelType(Label *label)
 {
+	if (!label)
+		return UNKNOWN;
+
 	return label->type;
 }
 /* ----------------------------------------------------------------	*/
@@ -88,38 +104,70 @@ LabelType getType(Label *label)
 /* ----------------------------------------------------------------	*
  *						Additional Functions						*
  * ----------------------------------------------------------------	*/
-/* isValidLabelName: Checks if the expression is a valid label name.
- * Returns 1 if it is, otherwise returns 0. */
-int isValidLabelName(const char *expr)
+/* isValidLabelDefinition: Checks if the expression is a valid label name.
+ * Returns 0 if it is, 
+ * otherwise returns one of the following nonzero values:
+ *	   -1: A null pointer argument
+ *		1: Label length is longer than the constant MAX_LABEL_LEN 
+ *		2: Invalid label character 
+ *		3: Label name is a saved keyword */
+int isValidLabelDefinition(const char *expr, char dest[MAX_LABEL_LEN+1])
 {
-	char tempC = 0;
-	char temp[MAX_LABEL_LEN+1] = {0};
-	const char testFormat[] = LABEL_FORMAT" %c";
+	int flags = 0, i = 0;
 
-	if (!expr || !(*expr) || strlen(expr)>MAX_LABEL_LEN)
-		return 0;
+	if (!expr || !(*expr))
+		return FAILURE;
 
-	/* Scan the label name without the ':' character into temp
-	 * while making sure expression is of the correct format */
-	if (sscanf(expr, testFormat, temp, &tempC)!=1)
-		return 0;
-
-	/* Make sure the scanned label name is not a saved keyword */
-	if (searchOperation(temp)!=FAILURE || isRegister(temp))
-		return 0;
-
-	/* The following conditions ensure that the label's name is completely 
-	 * alphanumeric and that the first character is alphabetic: */
-	if (!isalpha(*expr))
-		return 0;
-
-	while (*expr && isalnum(*expr))
-		expr++;
+	while (*expr && *expr!=LABEL_DEFINITION_SUFFIX) {
+		if (i<MAX_LABEL_LEN)
+			dest[i++] = *expr++;
+		else
+			flags |= INVALID_LABEL_LEN;
+	}
 	
-	if (*expr!=':' || *(expr+1)=='\0')
-		return 0;
+	dest[i] = '\0';
 
-	return 1;
+	if (*expr!=LABEL_DEFINITION_SUFFIX || *(expr+1)!='\0')
+		flags |= MISSING_LABEL_DEFINITION_SUFFIX;
+
+	flags |= isValidLabelTag(dest);
+
+	return flags;
+}
+
+int isValidLabelTag(const char *expr)
+{
+	int flags = 0;
+	const char *ptr = expr;
+
+	if (!expr || !(*expr))
+		return FAILURE;
+
+	if (!isalpha(*ptr))
+		flags |= INVALID_LABEL_SYNTAX;
+
+	while (isalnum(*++ptr));
+
+	if (*ptr)
+		flags |= INVALID_LABEL_SYNTAX;
+
+	if (ptr-expr>=MAX_LABEL_LEN)
+		flags |= INVALID_LABEL_LEN;
+
+	if (searchOperation(expr)!=FAILURE || isRegister(expr))
+		flags |= INVALID_LABEL_NAME;
+
+	return flags;
+}
+
+void printLabel(FILE *stream, Label *label)
+{
+	if (!stream || !label)
+		return;
+
+	fprintf(stream, "Type: %-6s\tAddress: %-4hu\tBase address: %-4hu\tOffset:%-4hu\n", 
+			LabelTypeStr[getLabelType(label)], getAddress(label),
+			getBaseAddress(label), getOffset(label));
 }
 /* ----------------------------------------------------------------	*/
 

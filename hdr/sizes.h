@@ -1,6 +1,5 @@
 #ifndef _SIZES_H
 #define _SIZES_H
-#include <stdio.h>
 
 #define MAX_LINE_LEN 81			/* maximum length for a line of input, excluding '\0' */
 #define MAX_LABEL_LEN 32		/* maximum length for a label, excluding '\0' */
@@ -13,6 +12,9 @@
 #define MAX_REGISTER_NUMBER 15	/* maximum register number (rN: r0, r1, ..., rN) */
 #define MIN_REGISTER_NUMBER 0	/* minimum register number */
 #define MAX_FILE_EXTENSION_LEN 4
+#define MAX_OPERATION_WORDS 2
+#define MAX_ADDITIONAL_WORDS 4
+#define FIRST_MEMORY_ADDRESS 100
 
 
 #ifndef _STDINT_H

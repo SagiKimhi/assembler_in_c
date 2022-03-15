@@ -1,6 +1,5 @@
 #ifndef _TREE_NODE_H
 #define _TREE_NODE_H
-
 #include <libraries.h>
 #include <bucket.h>
 
@@ -86,5 +85,7 @@ TreeNode *getLeftChild(TreeNode *node);
  * @return Returns a TreeNode pointer to the TreeNode which node's right child
  * is pointing to. NULL is returned upon failure or if the right child is NULL. */
 TreeNode *getRightChild(TreeNode *node);
+
+void printTreeNode(FILE *stream, TreeNode *node, voidOperationPtr printData);
 
 #endif

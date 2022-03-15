@@ -1,5 +1,23 @@
 #include <operations.h>
 
+#define LOAD_OPERATIONS(OPERATION)\
+	OPERATION(mov),\
+	OPERATION(cmp),\
+	OPERATION(add),\
+	OPERATION(sub),\
+	OPERATION(lea),\
+	OPERATION(clr),\
+	OPERATION(not),\
+	OPERATION(inc),\
+	OPERATION(dec),\
+	OPERATION(jmp),\
+	OPERATION(bne),\
+	OPERATION(jsr),\
+	OPERATION(red),\
+	OPERATION(prn),\
+	OPERATION(rts),\
+	OPERATION(stop)
+
 enum OperationEnums {
 	LOAD_OPERATIONS(GENERATE_ENUM)
 };
@@ -130,32 +148,73 @@ int searchOperation(const char *opName)
 	return FAILURE;
 }
 
-int32_t getOpCode(const char *opName)
+int isValidOperationIndex(int operationIndex)
 {
-	int i;
-
-	if ((i=searchOperation(opName))==FAILURE)
-		return FAILURE;
-
-	return Operations[i].opCode;
+	return (!(operationIndex<0 || operationIndex>NUMBER_OF_OPERATIONS));
 }
 
-int32_t getFunctCode(const char *opName)
+int getOperationMemoryWords(int operationIndex)
 {
-	int i;
+	if (!isValidOperationIndex(operationIndex))
+		return 0;
 
-	if ((i=searchOperation(opName))==FAILURE)
-		return FAILURE;
-
-	return Operations[i].functCode;
+	return (!Operations[operationIndex].numOfOperands ? 1: 2);
 }
 
-int getNumOfOperands(const char *opName)
+int isLegalOriginAddressingMode(const int operationIndex, 
+								AddressingMode addressingMode)
 {
-	int i;
+	switch (operationIndex) {
+		/* Every addressing mode is legal */
+		case mov: case cmp: 
+		case add: case sub:
+			return 1;
 
-	if ((i=searchOperation(opName))==FAILURE)
-		return FAILURE;
+		/* only direct and index are legal */
+		case lea:
+			switch (addressingMode) {
+				case DIRECT: case INDEX:
+					return 1;
+				default: 
+					return 0;
+			}
 
-	return Operations[i].numOfOperands;
+		default:
+			return 0;
+	}
+}
+
+int isLegalDestAddressingMode(const int operationIndex, 
+								AddressingMode addressingMode)
+{
+	switch (operationIndex) {
+		/* Every addressing mode is legal */
+		case cmp: case prn:
+			return 1;
+
+		/* only direct, index, and register direct are legal */
+		case mov: case add: case sub: case lea: case clr: 
+		case not: case inc: case dec: case red:
+			switch (addressingMode) {
+				case DIRECT: case INDEX: 
+				case REGISTER_DIRECT:
+					return 1;
+
+				default:
+					return 0; 
+			}
+
+		/* only direct and index are legal */
+		case jmp: case bne: case jsr:
+			switch (addressingMode) {
+				case DIRECT: case INDEX:
+					return 1;
+
+				default: 
+					return 0;
+			}
+
+		default:
+			return 0;
+	}
 }

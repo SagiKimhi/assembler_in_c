@@ -6,9 +6,15 @@
 #include <ctype.h>
 #include <sizes.h>
 #include <limits.h>
-#include <encodeBits.h>
+#include <errors.h>
 
 #define FAILURE -1
+#define FILE_EXTENSION_TOKEN		'.'
+#define SOURCE_FILE_EXTENSION		".as"
+#define PREPROCESSED_FILE_EXTENSION ".am"
+#define OBJECT_FILE_EXTENSION		".ob"
+#define ENTRY_FILE_EXTENSION		".ent"
+#define EXTERN_FILE_EXTENSION		".ext"
 #define CONCATENATE(A,B) A##B
 #define GENERATE_ENUM(ENUM) ENUM
 #define GENERATE_STRING(STRING) #STRING

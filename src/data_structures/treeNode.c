@@ -1,5 +1,3 @@
-#include "bucket.h"
-#include "libraries.h"
 #include <treeNode.h>
 
 struct treeNode {
@@ -116,4 +114,10 @@ TreeNode *getRightChild(TreeNode *node)
 	return node->rightChild;
 }
 /* ----------------------------------------------------------------	*/
+void printTreeNode(FILE *stream, TreeNode *node, voidOperationPtr printData)
+{
+	if (!node)
+		return;
 
+	printBucket(stream, node->bucket, printData);
+}

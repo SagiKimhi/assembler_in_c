@@ -1,4 +1,152 @@
 #include <libIO.h>
+#include <string.h>
+
+void encodeToFile(FILE *stream, uint32_t address, int32_t code)
+{
+	const char		FIRST_HEX_GROUP		= 'A';
+	const char		HEX_GROUP_SEPERATOR	= '-';
+	const int32_t	FIRST_FOUR_BITS		= 0xf;
+	const int		BITS_IN_HALF_BYTE	= 4;
+
+	char	hexGroup		= FIRST_HEX_GROUP;
+	int		shiftDistance	= MEM_CELL_SIZE;
+
+	if (!stream)
+		return;
+
+	if (address>=FIRST_MEMORY_ADDRESS)
+		fprintf(stream, "%04lu ", address);
+
+	while (shiftDistance) {
+		shiftDistance -= BITS_IN_HALF_BYTE;
+
+		fprintf(stream, "%c%lx", hexGroup++, code >> shiftDistance & FIRST_FOUR_BITS);
+
+		if (shiftDistance)
+			fputc(HEX_GROUP_SEPERATOR, stream);
+		else
+			fputc('\n', stream);
+	}
+}
+
+FILE *openFile(const char *fileName, const char *fileExtension, const char *mode)
+{
+	FILE *fp;
+	char *newFileName;
+	int fileNameLen, extensionLen;
+
+	if (!fileName || !fileExtension || !mode)
+		return NULL;
+
+	fileNameLen = strlen(fileName);
+	extensionLen = strlen(fileExtension);
+
+	if ((fileNameLen+extensionLen)>FILENAME_MAX) {
+		__ERROR__FILE_NAME_TOO_LONG(fileName);
+		return NULL;
+	}
+
+	newFileName = (char *) malloc(fileNameLen+extensionLen+1);
+
+	if (!newFileName)
+		return NULL;
+
+	sprintf(newFileName, "%s%s", fileName, fileExtension);
+
+	if (!(fp=fopen(newFileName, mode)))
+		perror("Error: ");
+
+	free(newFileName);
+	return fp;
+}
+
+int deleteFile(const char *fileName, const char *fileExtension)
+{
+	char *newFileName;
+	int fileNameLen, extensionLen;
+
+	if (!fileName || !fileExtension)
+		return -1;
+
+	fileNameLen = strlen(fileName);
+	extensionLen = strlen(fileExtension);
+
+	if ((fileNameLen+extensionLen)>FILENAME_MAX) {
+		__ERROR__FILE_NAME_TOO_LONG(fileName);
+		return -1;
+	}
+
+	newFileName = (char *) malloc(fileNameLen+extensionLen+1);
+
+	if (!newFileName)
+		return -1;
+
+	sprintf(newFileName, "%s%s", fileName, fileExtension);
+
+	if (remove(newFileName)) {
+		free(newFileName);
+		return -1;
+	}
+
+	free(newFileName);
+	return 0;
+}
+
+int getToken(char *dest, size_t buffSize, const char *str)
+{
+	int inString = 0, i = 0, j = 0;
+
+	if (!str || !dest || !buffSize)
+		return FAILURE;
+
+	while (isspace(str[i])) 
+		i++;
+
+	while (j<(buffSize-1) && str[i] && str[i]!='\n') {
+		if (str[i] == '\"' && !inString)
+			inString = !inString;
+
+		if (!inString && (isspace(str[i]) || str[i]==OPERAND_SEPERATOR))
+			break;
+
+		dest[j++] = str[i++];
+	}
+
+	if (str[i]==OPERAND_SEPERATOR && !j)
+		dest[j++] = str[i++];
+
+	dest[j] = '\0';
+	return i;
+}
+
+/* s_getWord: Scans a single non whitespace word from bufferIn and saves it
+ * into bufferOut. Returns the length of the word that was scanned upon success.
+ * Returns FAILURE (-1) upon failure, returns 0 if bufferIn's word was longer
+ * than the size specified by outSize. */
+int s_getWord(const char *bufferIn, char *bufferOut, size_t outSize)
+{
+	int i, j;
+
+	if (!bufferIn || !bufferOut)
+		return FAILURE;
+
+	/* skip all spaces until reaching the first word in bufferOut */
+	for (i=0; isspace(bufferIn[i]); i++)
+		;
+
+	/* copy all non whitespace characters from bufferIn to bufferOut */
+	for (j=0; bufferIn[i] && j<outSize-1 && !isspace(bufferIn[i]); i++, j++)
+		bufferOut[j] = bufferIn[i];
+
+	bufferOut[j] = '\0';
+
+	/* if bufferIn[i] is not whitespace then word was longer than outSize */
+	if (!isspace(bufferIn[i]) && bufferIn[i]!='\0')
+		return 0;
+
+	return j;
+}
+
 
 /* getLine: scans a line of input from stream with a maximum length of size and saves it 
  * into buffer, including the newline character. This function also removes trailing
@@ -10,6 +158,7 @@
 int getLine(char *buffer, int size, FILE *stream)
 {
 	int i, c;
+	int inString = 0;
 
 	/* Skip spaces at the begining of the line */
 	if ((c=skipSpaces(stream))==EOF)
@@ -19,13 +168,22 @@ int getLine(char *buffer, int size, FILE *stream)
 		return 0;
 	
 	
-	for (i=0, c=fgetc(stream); c!=EOF && c!='\n' && i<(size-1); i++) {
+	for (i=0, c=fgetc(stream); c!=EOF && i<(size-1); i++, c=fgetc(stream)) {
+		/* This condition allows support of escape sequence characters by 
+		 * not changing inString state when reside inside a string definition */
+		if (c=='\"' && !inString)
+			inString = !inString;
+
 		buffer[i] = c;
 
-		if (isspace(c))
-			c = skipSpaces(stream);
-		else
-			c = fgetc(stream);
+		if (c=='\n')
+			break;
+
+		if (inString)
+			continue;
+
+		if (isspace(c) && skipSpaces(stream)=='\n')
+				break;
 	}
 
 	/* If buffer is full and EOF was not reached */
