@@ -1,4 +1,3 @@
-#include "sizes.h"
 #include <ctype.h>
 #include <sentences.h>
 

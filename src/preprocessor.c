@@ -2,7 +2,6 @@
  * We may want to create an additional function called save macro
  * and replace it with the long macro saving process inside the expandMacros function
 */
-#include "binaryTree.h"
 #include <preprocessor.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,10 +1,3 @@
-#include "addressingModes.h"
-#include "binaryTree.h"
-#include "labels.h"
-#include "libIO.h"
-#include "libraries.h"
-#include "sentences.h"
-#include "sizes.h"
 #include <assembler.h>
 #include <stdio.h>
 #include <stdlib.h>

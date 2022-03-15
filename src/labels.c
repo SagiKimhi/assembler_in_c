@@ -1,4 +1,3 @@
-#include "libraries.h"
 #include <labels.h>
 
 static void setBaseAddress(Label *label, uint16_t address);
