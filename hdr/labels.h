@@ -9,6 +9,7 @@
 #define LABEL_FORMAT "%s:"
 #define LABEL_DEFINITION_SUFFIX ':'
 #define GENERATE_LABEL_TYPE(OPERATION)\
+    OPERATION(UNKNOWN),\
     OPERATION(DATA),\
     OPERATION(STRING),\
     OPERATION(ENTRY),\
@@ -20,6 +21,8 @@ typedef struct label Label;
 typedef enum LabelTypes {
     GENERATE_LABEL_TYPE(GENERATE_ENUM)
 } LabelType;
+
+extern const char *LabelTypeStr[];
 
 /* ----------------------------------------------------------------	*
  *							De/Constructor							*

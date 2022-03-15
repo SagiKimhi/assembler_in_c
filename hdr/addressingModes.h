@@ -15,7 +15,7 @@
 #define IMMEDIATE_EXPRESSION_PREFIX '#'
 #define REGISTER_DIRECT_EXPRESSION_PREFIX 'r'
 #define IMMEDIATE_FORMAT "#%hd"
-#define REGISTER_DIRECT_FORMAT "[r%hd]"
+#define REGISTER_DIRECT_FORMAT "r%hd"
 
 
 typedef enum {
@@ -25,8 +25,8 @@ typedef enum {
 int getAdditionalMemoryWords(AddressingMode mode);
 int getAddressingMode(const char *expr);
 int isRegister(const char *expr);
-int scanRegister(const char *expr, int *reg);
-int scanImmediateExpression(const char *expr, int *num);
-int scanIndexExpression(char *expr, int *reg);
+int scanRegister(const char *expr, int16_t *reg);
+int scanImmediateExpression(const char *expr, int16_t *num);
+int scanIndexExpression(char *expr, int16_t *reg);
 
 #endif

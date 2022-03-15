@@ -30,8 +30,8 @@ int getAddressingMode(const char *expr)
 	if (isRegister(expr))
 		return REGISTER_DIRECT;
 
-	if (!(temp=strchr(expr, INDEX_DELIMITERS[0])) || 
-		!(temp=strchr(temp, INDEX_DELIMITERS[1])))
+	if (!(temp=strrchr(expr, INDEX_DELIMITERS[0])) || 
+		!(temp=strrchr(temp, INDEX_DELIMITERS[1])))
 		return DIRECT;
 
 	return (temp[1]=='\0' ? INDEX: DIRECT);
@@ -39,12 +39,12 @@ int getAddressingMode(const char *expr)
 
 int isRegister(const char *expr)
 {
-	int tmp = 0;
+	int16_t tmp = 0;
 
 	return scanRegister(expr, &tmp);
 }
 
-int scanRegister(const char *expr, int *reg)
+int scanRegister(const char *expr, int16_t *reg)
 {
 	const char testFormat[] = REGISTER_DIRECT_FORMAT" %c";
 
@@ -68,7 +68,7 @@ int scanRegister(const char *expr, int *reg)
 
 /* scanImmediateExpression: scans an immediate expression's value into num.
  * Returns 1 upon success, otherwise, returns 0. */
-int scanImmediateExpression(const char *expr, int *num)
+int scanImmediateExpression(const char *expr, int16_t *num)
 {
 	const char testFormat[] = IMMEDIATE_FORMAT" %c";
 
@@ -90,7 +90,7 @@ int scanImmediateExpression(const char *expr, int *num)
 	return 0;
 }
 
-int scanIndexExpression(char *expr, int *reg)
+int scanIndexExpression(char *expr, int16_t *reg)
 {
 	int labelLen = 0;
 	char *regString, *temp;
@@ -98,13 +98,13 @@ int scanIndexExpression(char *expr, int *reg)
 	if (!expr || !reg)
 		return 0;
 
-	if (!(temp=strchr(expr, INDEX_DELIMITERS[0])))
+	if (!(temp=strrchr(expr, INDEX_DELIMITERS[0])))
 		return 0;
 
 	regString = temp+1;
 	labelLen = temp-expr;
 
-	if (!(temp = strchr(expr, INDEX_DELIMITERS[1])) || temp[1]!='\0')
+	if (!(temp=strrchr(temp, INDEX_DELIMITERS[1])) || temp[1])
 		return 0;
 
 	*temp = '\0';

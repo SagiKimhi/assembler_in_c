@@ -1,4 +1,3 @@
-#include "libraries.h"
 #include <labels.h>
 
 static void setBaseAddress(Label *label, uint16_t address);
@@ -94,6 +93,9 @@ uint16_t getOffset(Label *label)
 
 LabelType getLabelType(Label *label)
 {
+	if (!label)
+		return UNKNOWN;
+
 	return label->type;
 }
 /* ----------------------------------------------------------------	*/
@@ -163,8 +165,9 @@ void printLabel(FILE *stream, Label *label)
 	if (!stream || !label)
 		return;
 
-	fprintf(stream, "Type: %-6s\tBase address: %-4hu\tOffset:%-4hu\n", 
-			LabelTypeStr[getLabelType(label)], getBaseAddress(label), getOffset(label));
+	fprintf(stream, "Type: %-6s\tAddress: %-4hu\tBase address: %-4hu\tOffset:%-4hu\n", 
+			LabelTypeStr[getLabelType(label)], getAddress(label),
+			getBaseAddress(label), getOffset(label));
 }
 /* ----------------------------------------------------------------	*/
 

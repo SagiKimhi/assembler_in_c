@@ -2,4 +2,4 @@
 
 set testDir = "tests"
 
-rm ${testDir}/*.am
+rm ${testDir}/*.am ${testDir}/*.ob ${testDir}/*.ent ${testDir}/*.ext
