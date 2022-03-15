@@ -24,8 +24,8 @@ typedef enum SentenceTypes {
 
 SentenceType identifySentenceType(const char *token);
 int checkInstructionSentence(const char *operation, const char *sentence, 
-							uint32_t *instructionCounter, uint32_t lineNumber);
+							uint16_t *instructionCounter, uint32_t lineNumber);
 int checkDirectiveSentence(const char *sentence, SentenceType type,
-							uint32_t *dataCounter, uint32_t lineNumber);
+							uint16_t *dataCounter, uint32_t lineNumber);
 
 #endif

@@ -10,6 +10,8 @@ void encodeToFile(FILE *stream, uint32_t address, int32_t code);
 
 FILE *openFile(const char *fileName, const char *fileExtension, const char *mode);
 
+int deleteFile(const char *fileName, const char *fileExtension);
+
 int getToken(char *dest, size_t buffSize, const char *str);
 
 /* s_getWord: Scans a single non whitespace word from bufferIn and saves it

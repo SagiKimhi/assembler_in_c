@@ -1,6 +1,8 @@
 #include "addressingModes.h"
 #include "binaryTree.h"
 #include "labels.h"
+#include "libIO.h"
+#include "libraries.h"
 #include "sentences.h"
 #include "sizes.h"
 #include <assembler.h>
@@ -12,17 +14,16 @@
 
 static int isLineLabelDefinition(const char *token);
 static int startFirstPass(	FILE *inputStream, Tree *symbolTree, 
-							uint32_t *instructionCounter, uint32_t *dataCounter);
-static int startSecondPass(FILE *inputStream, const char *fileName, 
-							Tree *symbolTree, int validFlag, 
-							uint32_t *dataCounter, uint32_t *instructionCounter);
+							uint16_t *instructionCounter, uint16_t *dataCounter);
+static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbolTree, 
+							uint16_t *dataCounter, uint16_t *instructionCounter);
 
 int startAssembler(const char *fileName)
 {
 	/* Variable definitions */
 	int validFlag;
 	Tree *symbolTree;
-	uint32_t instructionCounter, dataCounter;
+	uint16_t instructionCounter, dataCounter;
 	FILE *inputStream = openFile(fileName, PREPROCESSED_FILE_EXTENSION, "r");
 
 	if (!inputStream)
@@ -39,7 +40,7 @@ int startAssembler(const char *fileName)
 		rewind(inputStream);
 		dataCounter += instructionCounter;
 		validFlag = startSecondPass(inputStream, fileName, symbolTree, 
-									validFlag, &dataCounter, &instructionCounter);
+									&dataCounter, &instructionCounter);
 	}
 
 	fclose(inputStream);
@@ -49,7 +50,7 @@ int startAssembler(const char *fileName)
 }
 
 static int startFirstPass(FILE *inputStream, Tree *symbolTree, 
-					uint32_t *instructionCounter, uint32_t *dataCounter)
+					uint16_t *instructionCounter, uint16_t *dataCounter)
 {
 	/* Variable Definitions */
 	Label *label = NULL;
@@ -197,26 +198,31 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree,
 	return validFlag;
 }
 
-static int startSecondPass(FILE *inputStream, const char *fileName, 
-							Tree *symbolTree, int validFlag, 
-							uint32_t *dataCounter, uint32_t *instructionCounter)
+static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbolTree, 
+							uint16_t *dataCounter, uint16_t *instructionCounter)
 {
 	Label *label;
-	int temp;
+	TreeNode *node;
 	SentenceType sentenceType;
-	uint32_t lineNumber, address;
-	register int32_t memoryWordCode;
-	char inputLine[MAX_LINE_LEN+1], *token;
-	FILE *objectFilePtr, *entryFilePtr, *externFilePtr, *tempDataFilePtr;
 	AddressingMode addressingMode;
-	int i, j, isOriginFlag, operationIndex;
+	char inputLine[MAX_LINE_LEN+1], *token;
+
+	int16_t temp;
+	uint32_t lineNumber;
+	register int32_t memoryWordCode;
+	uint16_t instructionAddress, dataAddress;
 	int32_t operationWords[MAX_OPERATION_WORDS];
 	int32_t additionalWords[MAX_ADDITIONAL_WORDS];
+	int isOriginOperand, operationIndex, validFlag, i, j;
+	FILE *objectFilePtr, *entryFilePtr, *externFilePtr, *tempDataFilePtr;
 
 	/* Variable Instantiations */
+	node = NULL;
 	label = NULL;
+	validFlag = 1;
 	lineNumber = temp = 0;
-	address = FIRST_MEMORY_ADDRESS;
+	dataAddress = (*instructionCounter);
+	instructionAddress = FIRST_MEMORY_ADDRESS;
 	objectFilePtr = entryFilePtr = externFilePtr = tempDataFilePtr = NULL;
 
 	while (getLine(inputLine, MAX_LINE_LEN+1, inputStream)!=EOF) {
@@ -244,29 +250,27 @@ static int startSecondPass(FILE *inputStream, const char *fileName,
 					if (!objectFilePtr)
 						validFlag = 0;
 
-					fprintf(objectFilePtr, "%lu %lu\n",
+					fprintf(objectFilePtr, "%d %d\n",
 							(*instructionCounter)-FIRST_MEMORY_ADDRESS,
 							(*dataCounter)-(*instructionCounter));
 				}
 
 				operationIndex = searchOperation(token);
-				token=strtok(NULL, OPERAND_SEPERATORS);
+				token = strtok(NULL, OPERAND_SEPERATORS);
 				operationWords[0] |= ABSOLUTE_CODE | Operations[operationIndex].opCode;
 
 				if (getOperationMemoryWords(operationIndex)>1) {
-					operationWords[1] |= 
-						ABSOLUTE_CODE | Operations[operationIndex].functCode;
+					operationWords[1] |=	ABSOLUTE_CODE | 
+											Operations[operationIndex].functCode;
 				}
 
-				isOriginFlag =
-					(Operations[operationIndex].numOfOperands>1) ? 1: 0;
+				isOriginOperand = (Operations[operationIndex].numOfOperands > 1);
 
 				for (i=0; token!=NULL; token=strtok(NULL, OPERAND_SEPERATORS)) {
 					addressingMode = getAddressingMode(token);
-					operationWords[1] |= 
-						(isOriginFlag) ? 
-							encodeOriginAddressMode(addressingMode):
-							encodeDestAddressMode(addressingMode);
+					operationWords[1] |= (isOriginOperand) ? 
+											encodeOriginAddressMode(addressingMode):
+											encodeDestAddressMode(addressingMode);
 
 					switch (addressingMode) {
 						TreeNode *node;
@@ -279,7 +283,7 @@ static int startSecondPass(FILE *inputStream, const char *fileName,
 						case INDEX:
 							scanIndexExpression(token, &temp);
 							operationWords[1] |= 
-								(isOriginFlag) ? 
+								(isOriginOperand) ? 
 									encodeOriginRegister(temp): 
 									encodeDestRegister(temp);
 
@@ -291,38 +295,46 @@ static int startSecondPass(FILE *inputStream, const char *fileName,
 								/* TODO: print error, label does not exist. */
 								fprintf(stderr, "label %s does not exist\n", token);
 								validFlag = 0;
+								continue;
 							}
-							else if (getLabelType(label)==DATA || getLabelType(label)==STRING) {
-								if (getAddress(label)<(*instructionCounter))
-									setLabelAddress(label, getAddress(label)
-															+ (*instructionCounter));
-								additionalWords[i++] |= RELOCATABLE_CODE | getBaseAddress(label);
-								additionalWords[i++] |= RELOCATABLE_CODE | getOffset(label);
-							}
-							else if (getLabelType(label)==EXTERN) {
-								additionalWords[i++] |= EXTERNAL_CODE | getBaseAddress(label);
-								additionalWords[i++] |= EXTERNAL_CODE | getOffset(label);
+							
+							switch (getLabelType(label)) {
+								case DATA:
+								case STRING:
+									if (getAddress(label)<(*instructionCounter))
+										setLabelAddress(label, getAddress(label)
+												+(*instructionCounter));
+
+								case CODE:
+									additionalWords[i++] |= RELOCATABLE_CODE | getBaseAddress(label);
+									additionalWords[i++] |= RELOCATABLE_CODE | getOffset(label);
+									break;
+
+								case EXTERN:
+									additionalWords[i++] |= EXTERNAL_CODE | getBaseAddress(label);
+									additionalWords[i++] |= EXTERNAL_CODE | getOffset(label);
+									break;
+
+								default: break;
 							}
 							break;
 
 						case REGISTER_DIRECT:
 							scanRegister(token, &temp);
-							operationWords[1] |= 
-								(isOriginFlag) ?
-									encodeOriginRegister(temp): 
-									encodeDestRegister(temp);
+							operationWords[1] |= (isOriginOperand) ?
+													encodeOriginRegister(temp): 
+													encodeDestRegister(temp);
 							break;
 					}
-
-					isOriginFlag = !isOriginFlag;
+					isOriginOperand = 0;
 				}
 
 				if (validFlag) {
-					for (j=0; j<getOperationMemoryWords(operationIndex); j++, address++)
-						encodeToFile(objectFilePtr, address, operationWords[j]);
+					for (j=0; j<getOperationMemoryWords(operationIndex); j++, instructionAddress++)
+						encodeToFile(objectFilePtr, instructionAddress, operationWords[j]);
 
-					for (j=0; j<i; j++, address++)
-						encodeToFile(objectFilePtr, address, additionalWords[j]);
+					for (j=0; j<i; j++, instructionAddress++)
+						encodeToFile(objectFilePtr, instructionAddress, additionalWords[j]);
 				}
 
 				break;
@@ -330,7 +342,7 @@ static int startSecondPass(FILE *inputStream, const char *fileName,
 			case DIRECTIVE_DATA_SENTENCE:
 			case DIRECTIVE_STRING_SENTENCE:
 				if (validFlag && !tempDataFilePtr) {
-					tempDataFilePtr = openFile(tmpnam(NULL), "", "w+");
+					tempDataFilePtr = tmpfile();
 
 					if (!tempDataFilePtr)
 						validFlag = 0;
@@ -338,62 +350,54 @@ static int startSecondPass(FILE *inputStream, const char *fileName,
 
 
 				while ((token=strtok(NULL,OPERAND_SEPERATORS))!=NULL) {
-					int16_t temp;
+					if (!validFlag)
+						continue;
 
-					if (validFlag) {
-						static uint32_t counter = 0;
-						int dataAddress = counter+(*instructionCounter);
-
-						if (sentenceType==DIRECTIVE_DATA_SENTENCE) {
-							sscanf(token, "%hd", &temp);
-							memoryWordCode = 0 | ABSOLUTE_CODE | temp;
+					if (sentenceType==DIRECTIVE_DATA_SENTENCE) {
+						sscanf(token, "%hd", &temp);
+						memoryWordCode |= ABSOLUTE_CODE | temp;
+						encodeToFile(tempDataFilePtr, dataAddress, memoryWordCode);
+						dataAddress++;
+					}
+					else {
+						while (*token && !(*token++=='\"' && *token=='\0')) {
+							temp = *token;
+							memoryWordCode = ABSOLUTE_CODE | temp;
 							encodeToFile(tempDataFilePtr, dataAddress, memoryWordCode);
-							counter++;
-						} 
-						else {
-							int i;
-
-							for (i=1; token[i] && token[i+1]; i++) {
-								if (token[i]=='\\' && token[i+1]=='\"')
-									continue;
-
-								memoryWordCode = 0 | ABSOLUTE_CODE | token[i];
-								encodeToFile(tempDataFilePtr, dataAddress, memoryWordCode);
-								counter++;
-								dataAddress = counter+(*instructionCounter);
-							}
-
-							memoryWordCode = ABSOLUTE_CODE;
-							encodeToFile(tempDataFilePtr, dataAddress, memoryWordCode);
+							dataAddress++;
 						}
+
+						memoryWordCode = ABSOLUTE_CODE;
+						encodeToFile(tempDataFilePtr, dataAddress, memoryWordCode);
 					}
 				}
 
 				break;
 
 			case DIRECTIVE_ENTRY_SENTENCE:
-				if (validFlag && !entryFilePtr) {
-					entryFilePtr = openFile(fileName, ENTRY_FILE_EXTENSION, "w");
-
-					if (!entryFilePtr)
-						validFlag = 0;
-				}
-
-				while ((token=strtok(NULL, OPERAND_SEPERATORS))!=NULL) {
-					TreeNode *node = searchTreeNode(symbolTree, token);
+				if ((token=strtok(NULL, OPERAND_SEPERATORS))!=NULL) {
+					node = searchTreeNode(symbolTree, token);
 					label = getTreeNodeData(node);
 
-					if (!node) {
-						/* TODO: print error, unable to define 
-						 * an undefined label as entry. */
+					if (!node || !label) {
+						/* TODO: print error, label is undefined, 
+						 * cannot define an undefined label as entry. */
 						validFlag = 0;
-						continue;
 					}
-
-					if (validFlag)
-						fprintf(entryFilePtr, "%s,%hu,%hu\n", getTreeNodeKey(node), 
-								getBaseAddress(label), getOffset(label));
 				}
+
+				if (!validFlag)
+					break;
+
+				if (!entryFilePtr) {
+					if (!(entryFilePtr=openFile(fileName, ENTRY_FILE_EXTENSION, "w"))) {
+						validFlag = 0;
+						break;
+					}
+				}
+
+				fprintf(entryFilePtr, "%s,%04hu,%04hu\n", getTreeNodeKey(node), 
+						getBaseAddress(label), getOffset(label));
 
 				break;
 
@@ -410,7 +414,7 @@ static int startSecondPass(FILE *inputStream, const char *fileName,
 						TreeNode *node = searchTreeNode(symbolTree, token);
 						label = getTreeNodeData(node);
 
-						fprintf(externFilePtr, "%s BASE %hu\n%s OFFSET %hu\n", 
+						fprintf(externFilePtr, "%s BASE %04hu\n%s OFFSET %04hu\n", 
 								getTreeNodeKey(node), getBaseAddress(label),
 								getTreeNodeKey(node), getOffset(label));
 					}
@@ -426,6 +430,13 @@ static int startSecondPass(FILE *inputStream, const char *fileName,
 		}
 	}
 
+	if (validFlag && tempDataFilePtr!=NULL) {
+		int c;
+		rewind(tempDataFilePtr);
+		while ((c=fgetc(tempDataFilePtr))!=EOF)
+			fputc(c, objectFilePtr);
+	}
+
 
 	if (objectFilePtr!=NULL)
 		fclose(objectFilePtr);
@@ -439,8 +450,11 @@ static int startSecondPass(FILE *inputStream, const char *fileName,
 	if (tempDataFilePtr!=NULL)
 		fclose(tempDataFilePtr);
 
-	if (validFlag)
-		fprintf(stderr, "Valid boh!\n");
+	if (!validFlag) {
+		deleteFile(fileName, OBJECT_FILE_EXTENSION);
+		deleteFile(fileName, ENTRY_FILE_EXTENSION);
+		deleteFile(fileName, EXTERN_FILE_EXTENSION);
+	}
 
 	return validFlag;
 }

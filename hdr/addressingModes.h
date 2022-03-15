@@ -1,5 +1,6 @@
 #ifndef _ADDRESSING_MODES_H
 #define _ADDRESSING_MODES_H
+#include "sizes.h"
 #include <libraries.h>
 
 #define LOAD_ADRESSING_MODES(OPERATION)\
@@ -25,8 +26,8 @@ typedef enum {
 int getAdditionalMemoryWords(AddressingMode mode);
 int getAddressingMode(const char *expr);
 int isRegister(const char *expr);
-int scanRegister(const char *expr, int *reg);
-int scanImmediateExpression(const char *expr, int *num);
-int scanIndexExpression(char *expr, int *reg);
+int scanRegister(const char *expr, int16_t *reg);
+int scanImmediateExpression(const char *expr, int16_t *num);
+int scanIndexExpression(char *expr, int16_t *reg);
 
 #endif

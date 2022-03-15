@@ -4,33 +4,30 @@
 
 void encodeToFile(FILE *stream, uint32_t address, int32_t code)
 {
-	int i;
-	char c;
-	int32_t temp;
-	const char FIRST_HEX_GROUP = 'A';
-	const char HEX_GROUP_SEPERATOR = '-';
-	const int BITS_IN_HALF_BYTE = 4;
-	const int NUM_OF_HEX_GROUPS = MEM_CELL_SIZE/BITS_IN_HALF_BYTE;
-	const int32_t FIRST_FOUR_BITS = 0xf;
+	const char		FIRST_HEX_GROUP		= 'A';
+	const char		HEX_GROUP_SEPERATOR	= '-';
+	const int32_t	FIRST_FOUR_BITS		= 0xf;
+	const int		BITS_IN_HALF_BYTE	= 4;
+
+	char	hexGroup		= FIRST_HEX_GROUP;
+	int		shiftDistance	= MEM_CELL_SIZE;
 
 	if (!stream)
 		return;
 
 	if (address>=FIRST_MEMORY_ADDRESS)
-		fprintf(stream, "%lu\t", address);
+		fprintf(stream, "%04lu ", address);
 
-	for (i=0, c=FIRST_HEX_GROUP; i<NUM_OF_HEX_GROUPS; i++, c++) {
+	while (shiftDistance) {
+		shiftDistance -= BITS_IN_HALF_BYTE;
 
-		temp = (FIRST_FOUR_BITS & (code >> (MEM_CELL_SIZE - BITS_IN_HALF_BYTE)));
-		fprintf(stream, "%c%lX", c, temp);
+		fprintf(stream, "%c%lx", hexGroup++, code >> shiftDistance & FIRST_FOUR_BITS);
 
-		if (i+1<NUM_OF_HEX_GROUPS)
+		if (shiftDistance)
 			fputc(HEX_GROUP_SEPERATOR, stream);
-
-		code <<= BITS_IN_HALF_BYTE;
+		else
+			fputc('\n', stream);
 	}
-
-	fputc('\n', stream);
 }
 
 FILE *openFile(const char *fileName, const char *fileExtension, const char *mode)
@@ -64,6 +61,38 @@ FILE *openFile(const char *fileName, const char *fileExtension, const char *mode
 	return fp;
 }
 
+int deleteFile(const char *fileName, const char *fileExtension)
+{
+	char *newFileName;
+	int fileNameLen, extensionLen;
+
+	if (!fileName || !fileExtension)
+		return -1;
+
+	fileNameLen = strlen(fileName);
+	extensionLen = strlen(fileExtension);
+
+	if ((fileNameLen+extensionLen)>FILENAME_MAX) {
+		__ERROR__FILE_NAME_TOO_LONG(fileName);
+		return -1;
+	}
+
+	newFileName = (char *) malloc(fileNameLen+extensionLen+1);
+
+	if (!newFileName)
+		return -1;
+
+	sprintf(newFileName, "%s%s", fileName, fileExtension);
+
+	if (remove(newFileName)) {
+		free(newFileName);
+		return -1;
+	}
+
+	free(newFileName);
+	return 0;
+}
+
 int getToken(char *dest, size_t buffSize, const char *str)
 {
 	int inString = 0, i = 0, j = 0;
@@ -74,12 +103,9 @@ int getToken(char *dest, size_t buffSize, const char *str)
 	while (isspace(str[i])) 
 		i++;
 
-	while (j<(buffSize-1) && str[i]) {
-		if (str[i] == '\"')
+	while (j<(buffSize-1) && str[i] && str[i]!='\n') {
+		if (str[i] == '\"' && !inString)
 			inString = !inString;
-
-		if (inString && str[i]=='\\' && str[i+1]=='\"')
-			i++;
 
 		if (!inString && (isspace(str[i]) || str[i]==OPERAND_SEPERATOR))
 			break;
@@ -146,7 +172,7 @@ int getLine(char *buffer, int size, FILE *stream)
 	for (i=0, c=fgetc(stream); c!=EOF && i<(size-1); i++, c=fgetc(stream)) {
 		/* This condition allows support of escape sequence characters by 
 		 * not changing inString state when reside inside a string definition */
-		if (c=='\"' && (!inString || buffer[i]!='\\'))
+		if (c=='\"' && !inString)
 			inString = !inString;
 
 		buffer[i] = c;

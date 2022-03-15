@@ -39,12 +39,12 @@ int getAddressingMode(const char *expr)
 
 int isRegister(const char *expr)
 {
-	int tmp = 0;
+	int16_t tmp = 0;
 
 	return scanRegister(expr, &tmp);
 }
 
-int scanRegister(const char *expr, int *reg)
+int scanRegister(const char *expr, int16_t *reg)
 {
 	const char testFormat[] = REGISTER_DIRECT_FORMAT" %c";
 
@@ -68,7 +68,7 @@ int scanRegister(const char *expr, int *reg)
 
 /* scanImmediateExpression: scans an immediate expression's value into num.
  * Returns 1 upon success, otherwise, returns 0. */
-int scanImmediateExpression(const char *expr, int *num)
+int scanImmediateExpression(const char *expr, int16_t *num)
 {
 	const char testFormat[] = IMMEDIATE_FORMAT" %c";
 
@@ -90,7 +90,7 @@ int scanImmediateExpression(const char *expr, int *num)
 	return 0;
 }
 
-int scanIndexExpression(char *expr, int *reg)
+int scanIndexExpression(char *expr, int16_t *reg)
 {
 	int labelLen = 0;
 	char *regString, *temp;

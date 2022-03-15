@@ -1,3 +1,5 @@
+#include "sizes.h"
+#include <ctype.h>
 #include <sentences.h>
 
 static int isInstructionToken(const char *token);
@@ -38,7 +40,7 @@ SentenceType identifySentenceType(const char *token)
 }
 
 int checkInstructionSentence(const char *operation, const char *sentence, 
-							uint32_t *instructionCounter, uint32_t lineNumber)
+							uint16_t *instructionCounter, uint32_t lineNumber)
 {
 	char token[MAX_LINE_LEN+1];
 	const char *nextTokenPtr = sentence;
@@ -107,7 +109,7 @@ int checkInstructionSentence(const char *operation, const char *sentence,
 }
 
 int checkDirectiveSentence(const char *sentence, SentenceType type,
-							uint32_t *dataCounter, uint32_t lineNumber)
+							uint16_t *dataCounter, uint32_t lineNumber)
 {
 	char token[MAX_LINE_LEN+1];
 	const char *nextTokenPtr = sentence;
@@ -177,7 +179,7 @@ int checkDirectiveSentence(const char *sentence, SentenceType type,
 
 static int validateInstructionOperand(char *operand, AddressingMode addressingMode)
 {
-	int temp = 0;
+	int16_t temp = 0;
 
 	switch (addressingMode) {
 		case IMMEDIATE:
@@ -230,10 +232,18 @@ static int validateDirectiveOperand(const char *operand, SentenceType type)
 			return 0;
 
 		case DIRECTIVE_STRING_SENTENCE:
-			tempN = strlen(operand);
+			if (*operand=='\"') {
+				for (; operand[tempN]; tempN++) {
+					if (!isprint(operand[tempN])) {
+						/* TODO: print error: unprintable character */
+						return 0;
+					}
+				}
 
-			if (*operand=='\"' && tempN>1 && operand[tempN-1]=='\"')
-				return (tempN-1);
+				if (tempN && !operand[tempN] && operand[tempN-1]=='\"')
+					/* Length of the initial string minus the string delimiters */
+					return tempN-1;
+			}
 
 			/* TODO: print error, missing string delimiters. */
 			return 0;
