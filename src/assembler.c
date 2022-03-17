@@ -46,7 +46,9 @@ int startAssembler(const char *fileName)
 	symbolTree = newTree();
 	dataCounter = 0;
 	instructionCounter = FIRST_MEMORY_ADDRESS;
-	validFlag = startFirstPass(inputStream, symbolTree, 
+	
+	/* Initiate first pass */
+	validFlag = startFirstPass(	inputStream, symbolTree, 
 								&instructionCounter, &dataCounter);
 
 	if (validFlag) {
@@ -208,6 +210,13 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree,
 				break;
 		}
 	}
+
+	if ((*dataCounter + *instructionCounter) > MEMSIZE) {
+		/* TODO: print error, max memory exceeded. */
+		validFlag = 0;
+	
+	}
+
 	return validFlag;
 }
 
@@ -383,9 +392,8 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 						(tempDataFilePtr, dataAddress++, memoryWordCode);
 					}
 					else {
-						while (*token && !(*token++=='\"' && *token=='\0')) {
-							temp = *token;
-							memoryWordCode = ABSOLUTE_CODE | temp;
+						for (i=1; token[i] && token[i+1]; i++) {
+							memoryWordCode = ABSOLUTE_CODE | token[i];
 							encodeToFile
 							(tempDataFilePtr, dataAddress++, memoryWordCode);
 						}
