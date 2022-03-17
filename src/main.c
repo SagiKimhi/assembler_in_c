@@ -2,7 +2,6 @@
 #include <libraries.h>
 #include <assembler.h>
 #include <preprocessor.h>
-#include <stdlib.h>
 
 int main(int argc, char **argv)
 {

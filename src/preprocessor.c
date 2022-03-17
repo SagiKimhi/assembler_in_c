@@ -3,8 +3,6 @@
  * and replace it with the long macro saving process inside the expandMacros function
 */
 #include <preprocessor.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 static int fscanAndExpandMacros(FILE *readPtr, FILE *writePtr, Tree *binTree);
 
