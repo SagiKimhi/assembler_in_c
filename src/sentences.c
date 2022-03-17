@@ -1,4 +1,3 @@
-#include <ctype.h>
 #include <sentences.h>
 
 static int isInstructionToken(const char *token);

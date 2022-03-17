@@ -68,6 +68,11 @@ TreeNode *searchTreeNode(Tree *tree, char *key)
 
 	return searchTreeNode_rec(tree->root, key);
 }
+
+TreeNode *getRoot(Tree *tree)
+{
+	return ((!tree) ? NULL: tree->root);
+}
 /* ----------------------------------------------------------------	*/
 
 /* ----------------------------------------------------------------	*

@@ -1,5 +1,4 @@
 #include <libIO.h>
-#include <string.h>
 
 void encodeToFile(FILE *stream, uint32_t address, int32_t code)
 {

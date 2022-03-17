@@ -1,8 +1,5 @@
 #include <labels.h>
 
-static void setBaseAddress(Label *label, uint16_t address);
-static void setOffset(Label *label, uint16_t address);
-
 struct label {
 	uint16_t baseAddress;
 	uint16_t offset;
@@ -49,8 +46,7 @@ void setLabelAddress(Label *label, uint16_t address)
 	if (!label)
 		return;
 
-	setBaseAddress(label, address);
-	setOffset(label, address);
+	label->baseAddress = address - (label->offset = address % ADDRESS_BASE);
 }
 
 void setLabelType(Label *label, LabelType type)
@@ -170,30 +166,3 @@ void printLabel(FILE *stream, Label *label)
 			getBaseAddress(label), getOffset(label));
 }
 /* ----------------------------------------------------------------	*/
-
-/* ----------------------------------------------------------------	*
- *							Static Functions						*
- * ----------------------------------------------------------------	*/
-/* setBaseAddress: A private function to calculate and set the Label's 
- * base address from a given address */
-static void setBaseAddress(Label *label, uint16_t address)
-{
-	if (!address) {
-		label->baseAddress = 0;
-		return;
-	}
-
-	label->baseAddress = (address/ADDRESS_BASE)*ADDRESS_BASE;
-	
-	if (address==label->baseAddress)
-		label->baseAddress -= ADDRESS_BASE;
-}
-
-/* setOffset: A private function to calculate and set the label's 
- * offset from the label's base address to the given address */
-static void setOffset(Label *label, uint16_t address)
-{
-	label->offset = address - label->baseAddress;
-}
-/* ----------------------------------------------------------------	*/
-
