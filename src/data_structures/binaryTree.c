@@ -1,14 +1,34 @@
 #include <binaryTree.h>
 
-
+/* ----------------------------------------------------------------	*
+ *			Constants, Defines, and Structure declarations			*
+ * ----------------------------------------------------------------	*/
 struct binaryTree {
 	TreeNode *root;	
 };
+/* ----------------------------------------------------------------	*/
 
-static void deleteTree_rec(TreeNode *root, voidOperationPtr deleteData);
+/* ----------------------------------------------------------------	*
+ *						Static Function Prototypes					*
+ * ----------------------------------------------------------------	*/
 static void printTree_rec(FILE *stream, TreeNode *root, voidOperationPtr printData);
-static TreeNode *addTreeNode_rec(TreeNode *root, char *key, void *data);
+
+/* deleteTree_rec: A private function used by deleteTree to recursively
+ * go through the root and children of the tree structure and free
+ * them from memory. data will also be free'd if the deleteData is not NULL. */
+static void deleteTree_rec(TreeNode *root, voidOperationPtr deleteData);
+
+/* searchTreeNode_rec: A private function used by searchTreeNode to recursively
+ * go through the root and children of a tree structure in order to find 
+ * the node whose key is identical to the key provided as argument. */
 static TreeNode *searchTreeNode_rec(TreeNode *root, char *key);
+
+/* addTreeNode_rec: A private function used by addTreeNode to recursively
+ * go through the root and children of the tree and find an appropriate spot
+ * for a new node to be created with key and data. if a node with the same key
+ * already exists, nothing new is added to the tree and the function returns. */
+static TreeNode *addTreeNode_rec(TreeNode *root, char *key, void *data);
+/* ----------------------------------------------------------------	*/
 
 /* ----------------------------------------------------------------	*
  *							De/Constructor							*
@@ -67,11 +87,6 @@ TreeNode *searchTreeNode(Tree *tree, char *key)
 		return NULL;
 
 	return searchTreeNode_rec(tree->root, key);
-}
-
-TreeNode *getRoot(Tree *tree)
-{
-	return ((!tree) ? NULL: tree->root);
 }
 /* ----------------------------------------------------------------	*/
 

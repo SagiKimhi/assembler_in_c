@@ -1,15 +1,29 @@
-/* Todo Note:
- * We may want to create an additional function called save macro
- * and replace it with the long macro saving process inside the expandMacros function
-*/
 #include <preprocessor.h>
 
-static int fscanAndExpandMacros(FILE *readPtr, FILE *writePtr, Tree *binTree);
+/* ----------------------------------------------------------------	*
+ *						Static Function Prototypes					*
+ * ----------------------------------------------------------------	*/
+/* saveMacro: defines a new macro and saves it in the macro tree. */
+static void saveMacro(FILE *readPtr, Tree *macroTree);
 
-/* Also temporary until a data structure is decided for the preprocessor */
+/* fscanAndExpandMacros: scans the file pointed to by readPtr, and copies it's content
+ * onto writePtr while leaving out macro definitions found in readPtr, and replacing
+ * macro calls found in readPtr by the actual contents of the defined macro. */
+static void fscanAndExpandMacros(FILE *readPtr, FILE *writePtr, Tree *binTree);
+/* ----------------------------------------------------------------	*/
+
+/* ----------------------------------------------------------------	*
+ *							Public Functions						*
+ * ----------------------------------------------------------------	*/
+/* macroPreprocessor: opens the provided filename with a '.as' extension for reading,
+ * and creates a new file with an identical filename and a '.am' extension for writing.
+ * The newly created file will contain the processed contents of the original file, 
+ * leaving macro definitions out of the new file and replacing macro calls with 
+ * the actual contents of the defined macros.
+ * Returns EXIT_SUCCESS upon success or EXIT_FAILURE if an error occured.*/
 int macroPreprocessor(const char *fileName)
 {
-	Tree *binTree;
+	Tree *macroTree;
 	FILE *readPtr, *writePtr;
 
 	readPtr=openFile(fileName, SOURCE_FILE_EXTENSION, "r");
@@ -24,26 +38,30 @@ int macroPreprocessor(const char *fileName)
 		return EXIT_FAILURE;
 	}
 
-	if (!(binTree = newTree())) {
+	if (!(macroTree = newTree())) {
 		fclose(readPtr);
 		fclose(writePtr);
+		deleteFile(fileName, PREPROCESSED_FILE_EXTENSION);
 		return EXIT_FAILURE;
 	}
 
-	fscanAndExpandMacros(readPtr, writePtr, binTree);
-	deleteTree(binTree, deleteMacro);
+	fscanAndExpandMacros(readPtr, writePtr, macroTree);
+	deleteTree(macroTree, deleteMacro);
 	fclose(readPtr);
 	fclose(writePtr);
+
 	return EXIT_SUCCESS;
 }
+/* ----------------------------------------------------------------	*/
 
-/* fscanAndExpandMacros: Scans macro definitions from the file pointed to by readPtr, and writes
- * the 'processed version' into the file pointed to by writePtr. 
- * 'Processed version' means that macro definitions are not included in the new file,
- * and all macro calls are replaced by the actual contents of those defined macros. */
-static int fscanAndExpandMacros(FILE *readPtr, FILE *writePtr, Tree *binTree)
+/* ----------------------------------------------------------------	*
+ *							Static Functions						*
+ * ----------------------------------------------------------------	*/
+/* fscanAndExpandMacros: scans the file pointed to by readPtr, and copies it's content
+ * onto writePtr while leaving out macro definitions found in readPtr, and replacing
+ * macro calls found in readPtr by the actual contents of the defined macro. */
+static void fscanAndExpandMacros(FILE *readPtr, FILE *writePtr, Tree *macroTree)
 {
-	/* Variable Definitions */
 	Macro *macro;
 	int tempFilePosition;
 	char tempWord[MAX_LINE_LEN+1];
@@ -54,40 +72,67 @@ static int fscanAndExpandMacros(FILE *readPtr, FILE *writePtr, Tree *binTree)
 
 		/* Error checking */
 		if (getWord(tempWord, MAX_LINE_LEN+1, readPtr)<=0) 
-			return EOF;
+			return;
 
 		/* Check for begining of macro definition */
 		if (!strcmp(tempWord, START_OF_MACRO_DEFINITION)) {
-			/* Get the name of the macro + Error checking */
-			if (getWord(tempWord, MAX_LINE_LEN+1, readPtr)<=0)
-				return EOF;
-
-			/* Create a new macro and save it into the data structure */
-			macro = newMacro();
-			skipSpaces(readPtr);
-			setStartPosition(macro, ftell(readPtr));
-			addTreeNode(binTree, tempWord, macro);
-
-			/* Find the end of macro definition, and save the end of macro 
-			 * definition's file index to the new macro structure */
-			while (strcmp(tempWord, END_OF_MACRO_DEFINITION)) {
-				skipSpaces(readPtr);
-				tempFilePosition = ftell(readPtr);
-
-				if (getWord(tempWord, MAX_LINE_LEN+1, readPtr)<=0)
-					return EOF;
-			}
-			setEndPosition(macro, tempFilePosition);
+			saveMacro(readPtr, macroTree);
 			continue;
 		}
 
-		macro = getTreeNodeData(searchTreeNode(binTree, tempWord));
+		/* check if the current word is the name of a macro */
+		macro = getTreeNodeData(searchTreeNode(macroTree, tempWord));
 
 		if (macro!=NULL)
 			fprintMacro(readPtr, writePtr, macro);
 		else
 			putStreamLine(readPtr, tempFilePosition, writePtr, ftell(writePtr));
 	}
-
-	return 0;
 }
+
+/* saveMacro: defines a new macro and saves it in the macro tree. */
+static void saveMacro(FILE *readPtr, Tree *macroTree)
+{
+	Macro *macro = NULL;
+	int tempFilePosition;
+	char tempWord[MAX_LINE_LEN+1];
+
+	/* Get the name of the macro + Error checking */
+	if (getWord(tempWord, MAX_LINE_LEN+1, readPtr)==EOF)
+		return;
+
+	/* If we reached the end of macro definition before a macro name was 
+	 * even provided, we simply ignore the definition and move on. */
+	if (!strcmp(tempWord, END_OF_MACRO_DEFINITION))
+		return;
+
+	/* Check if a macro with this name already exists in the tree */
+	macro = getTreeNodeData(searchTreeNode(macroTree, tempWord));
+
+	if (!macro) {
+		/* Create a new macro and save it into the data structure */
+		macro = newMacro();
+		addTreeNode(macroTree, tempWord, macro);
+	}
+	else {
+		/* TODO: print warning, this macro was already defined previously, 
+		 * overwriting previous macro definition with current definition. */
+	}
+
+	/* skip to the starting point of the macro's actual content
+	 * and set the apropriate file position. */
+	skipSpaces(readPtr);
+	setStartPosition(macro, ftell(readPtr));
+
+	/* seek to the end of macro definition */
+	while (strcmp(tempWord, END_OF_MACRO_DEFINITION)) {
+		skipSpaces(readPtr);
+		tempFilePosition = ftell(readPtr);
+
+		if (getWord(tempWord, MAX_LINE_LEN+1, readPtr)==EOF)
+			break;
+	}
+
+	setEndPosition(macro, tempFilePosition);
+}
+/* ----------------------------------------------------------------	*/

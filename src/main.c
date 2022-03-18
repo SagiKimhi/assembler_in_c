@@ -16,9 +16,7 @@ int main(int argc, char **argv)
 
 	/* Begin assembling the files */
 	for (arg = 1; arg < argc; arg++) {
-		/* Start the preprocessor */
 		if (macroPreprocessor(argv[arg])==EXIT_SUCCESS)
-			/* Start the assembler */
 			startAssembler(argv[arg]);
 	}
 

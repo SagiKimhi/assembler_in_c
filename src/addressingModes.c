@@ -1,22 +1,17 @@
 #include <addressingModes.h>
 
+/* ----------------------------------------------------------------	*
+ *			Constants, Defines, and Structure declarations			*
+ * ----------------------------------------------------------------	*/
 const char INDEX_DELIMITERS[] = "[]";
+/* ----------------------------------------------------------------	*/
 
-int getAdditionalMemoryWords(AddressingMode mode)
-{
-	switch (mode) {
-	case IMMEDIATE:
-		return 1;
-
-	case DIRECT:
-	case INDEX:
-		return 2;
-
-	default:
-		return 0;
-	}
-}
-
+/* ----------------------------------------------------------------	*
+ *							Public Functions						*
+ * ----------------------------------------------------------------	*/
+/* getAddressingMode: Analyzes the expression expr and returns it's
+ * corrosponding addressing mode. If expr is a NULL pointer or an empty
+ * string then the function will return FAILURE (-1). */
 int getAddressingMode(const char *expr)
 {
 	char *temp;
@@ -37,6 +32,25 @@ int getAddressingMode(const char *expr)
 	return (temp[1]=='\0' ? INDEX: DIRECT);
 }
 
+/* getAdditionalMemoryWords: Returns the number of additional memory
+ * words required for representing an operand of the given addressingMode */
+int getAdditionalMemoryWords(AddressingMode addressingMode)
+{
+	switch (addressingMode) {
+	case IMMEDIATE:
+		return 1;
+
+	case DIRECT:
+	case INDEX:
+		return 2;
+
+	default:
+		return 0;
+	}
+}
+
+/* isRegister: Scans the expression expr and returns 1 if the expression 
+ * represents a valid cpu register name, otherwise, returns 0. */
 int isRegister(const char *expr)
 {
 	int16_t tmp = 0;
@@ -44,6 +58,10 @@ int isRegister(const char *expr)
 	return scanRegister(expr, &tmp);
 }
 
+/* scanRegister: Scans the expression expr and returns 1 if the expression 
+ * represents a valid cpu register name, otherwise, returns 0. 
+ * if expr represents a valid cpu register name, then the pointer reg is set 
+ * to point to the register number expr refers to. */
 int scanRegister(const char *expr, int16_t *reg)
 {
 	const char testFormat[] = REGISTER_DIRECT_FORMAT" %c";
@@ -66,7 +84,8 @@ int scanRegister(const char *expr, int16_t *reg)
 }
 
 
-/* scanImmediateExpression: scans an immediate expression's value into num.
+/* scanImmediateExpression: scans an immediate expression and stores 
+ * its value in the short integer pointer num.
  * Returns 1 upon success, otherwise, returns 0. */
 int scanImmediateExpression(const char *expr, int16_t *num)
 {
@@ -90,6 +109,13 @@ int scanImmediateExpression(const char *expr, int16_t *num)
 	return 0;
 }
 
+/* scanIndexExpression: Scans an index addressing mode expression.
+ * Returns 1 if expr is indeed a valid index addressing mode expression,
+ * otherwise, returns 0.
+ * If expr is a valid index expression, then its index's register value 
+ * is stored within the short integer pointer reg, and the character pointer
+ * expr is modified such that the index delimiter is replaced by a null 
+ * terminator so that expr now points to a null terminated label name. */
 int scanIndexExpression(char *expr, int16_t *reg)
 {
 	int labelLen = 0;
@@ -109,7 +135,7 @@ int scanIndexExpression(char *expr, int16_t *reg)
 
 	*temp = '\0';
 
-	if (!scanRegister(regString, reg)) {
+	if (!scanRegister(regString, reg) || *reg<MIN_INDEX_REGISTER_NUMBER) {
 		*temp = INDEX_DELIMITERS[1];
 		return 0;
 	}
@@ -117,3 +143,4 @@ int scanIndexExpression(char *expr, int16_t *reg)
 	expr[labelLen] = '\0';
 	return 1;
 }
+/* ----------------------------------------------------------------	*/

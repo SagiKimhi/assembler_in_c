@@ -1,10 +1,14 @@
 #include <treeNode.h>
 
+/* ----------------------------------------------------------------	*
+ *			Constants, Defines, and Structure declarations			*
+ * ----------------------------------------------------------------	*/
 struct treeNode {
 	Bucket *bucket;
 	struct treeNode *leftChild;
 	struct treeNode *rightChild;
 };
+/* ----------------------------------------------------------------	*/
 
 /* ----------------------------------------------------------------	*
  *							De/Constructor							*
@@ -114,6 +118,7 @@ TreeNode *getRightChild(TreeNode *node)
 	return node->rightChild;
 }
 /* ----------------------------------------------------------------	*/
+
 void printTreeNode(FILE *stream, TreeNode *node, voidOperationPtr printData)
 {
 	if (!node)
