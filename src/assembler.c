@@ -400,7 +400,7 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 
 						memoryWordCode = ABSOLUTE_CODE;
 						encodeToFile
-						(tempDataFilePtr, dataAddress, memoryWordCode);
+						(tempDataFilePtr, dataAddress++, memoryWordCode);
 					}
 				}
 
