@@ -1,3 +1,4 @@
+#include "labels.h"
 #include <assembler.h>
 
 /* ----------------------------------------------------------------	*
@@ -22,6 +23,9 @@ static FILE *createExternFile(const char *fileName);
 static FILE *createObjectFile
 (const char *fileName, uint16_t instructionCounter, uint16_t dataCounter);
 
+static void updateSymbolTreeAddresses
+(TreeNode *symbolTreeRoot, uint16_t instructionCounter);
+
 static int startFirstPass(	FILE *inputStream, Tree *symbolTree, 
 							uint16_t *instructionCounter, uint16_t *dataCounter);
 
@@ -29,39 +33,60 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 							uint16_t dataCounter, uint16_t instructionCounter);
 
 /* ----------------------------------------------------------------	*
- *						Main Public Function						*
+ *							Public Functions						*
  * ----------------------------------------------------------------	*/
+/* startAssembler: The main assembler function which initiates the first
+ * pass of the assembler as well as the second pass if no errors pop up
+ * during the first pass. 
+ * The function returns a value of 1 if both passes completed successfully
+ * without any errors, otherwise, 0 will be returned.
+ * It is worth to mention that warnings do not count as errors and therefore
+ * even if a warning was issued, the code will still be assembled and the
+ * returned value would still be 1.*/
 int startAssembler(const char *fileName)
 {
 	/* Variable definitions */
 	int validFlag;
 	Tree *symbolTree;
+	FILE *inputStream; 
 	uint16_t instructionCounter, dataCounter;
-	FILE *inputStream = openFile(fileName, PREPROCESSED_FILE_EXTENSION, "r");
+
+	/* Open the preprocessed source file for reading */
+	inputStream = openFile(fileName, PREPROCESSED_FILE_EXTENSION, "r");
 
 	if (!inputStream)
 		return EXIT_FAILURE;
 
-	/* Variable Instantiations */
-	symbolTree = newTree();
+	/* Create a new binary tree to store labels */
+	if (!(symbolTree = newTree())) {
+		fclose(inputStream);
+		return EXIT_FAILURE;
+	}
+
+	/* Instantiate data and instruction counters */
 	dataCounter = 0;
 	instructionCounter = FIRST_MEMORY_ADDRESS;
 	
 	/* Initiate first pass */
-	validFlag = startFirstPass(	inputStream, symbolTree, 
-								&instructionCounter, &dataCounter);
+	validFlag = startFirstPass
+				(inputStream, symbolTree, &instructionCounter, &dataCounter);
 
+	/* if no errors popped up - rewind file, update counter and 
+	 * symbol tree and initiate the second pass. */
 	if (validFlag) {
 		rewind(inputStream);
 		dataCounter += instructionCounter;
+		updateSymbolTreeAddresses(getRoot(symbolTree), instructionCounter);
 		validFlag = startSecondPass(inputStream, fileName, symbolTree, 
 									dataCounter, instructionCounter);
 	}
 
+	/* close file and free memory */
 	fclose(inputStream);
 	printTree(stdout, symbolTree, printLabel);
 	deleteTree(symbolTree, deleteLabel);
-	return (validFlag) ? EXIT_SUCCESS: EXIT_FAILURE;
+
+	return ((validFlag) ? EXIT_SUCCESS: EXIT_FAILURE);
 }
 
 static int startFirstPass(FILE *inputStream, Tree *symbolTree, 
@@ -324,10 +349,6 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 							switch (getLabelType(label)) {
 								case DATA:
 								case STRING:
-									if (getAddress(label)<instructionCounter)
-										setLabelAddress(label, getAddress(label)
-																+instructionCounter);
-
 								case CODE:
 									additionalWords[i++] |= RELOCATABLE_CODE | 
 															getBaseAddress(label);
@@ -336,10 +357,9 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 									break;
 
 								case EXTERN:
-									if (!externFilePtr &&
-										!(externFilePtr=createExternFile(fileName))) {
+									if (!externFilePtr	&& 
+										!(externFilePtr = createExternFile(fileName)))
 											validFlag = 0;
-									}
 
 									if (validFlag) {
 										additionalWords[i++] = EXTERNAL_CODE;
@@ -386,7 +406,7 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 						continue;
 
 					if (sentenceType==DIRECTIVE_DATA_SENTENCE) {
-						sscanf(token, "%hd", &temp);
+						sscanf(token, DATA_SCAN_FORMAT, &temp);
 						memoryWordCode |= ABSOLUTE_CODE | temp;
 						encodeToFile
 						(tempDataFilePtr, dataAddress++, memoryWordCode);
@@ -513,4 +533,31 @@ static void printExtern(FILE *stream, TreeNode *node, uint16_t address)
 {
 	fprintf(stream, "%s BASE %04hu\n", getTreeNodeKey(node), address++);
 	fprintf(stream, "%s OFFSET %04hu\n", getTreeNodeKey(node), address);
+}
+
+static void updateSymbolAddress
+(Label *label, uint16_t instructionCounter)
+{
+	uint16_t temp;
+
+	switch(getLabelType(label)) {
+		case DATA:
+		case STRING:
+			if ((temp=getAddress(label))<instructionCounter)
+				setLabelAddress(label, temp+instructionCounter);
+
+		default:
+			break;
+	}
+}
+
+static void updateSymbolTreeAddresses
+(TreeNode *symbolTreeRoot, uint16_t instructionCounter)
+{
+	if (!symbolTreeRoot)
+		return;
+
+	updateSymbolAddress(getTreeNodeData(symbolTreeRoot), instructionCounter);
+	updateSymbolTreeAddresses(getLeftChild(symbolTreeRoot), instructionCounter);
+	updateSymbolTreeAddresses(getRightChild(symbolTreeRoot), instructionCounter);
 }
