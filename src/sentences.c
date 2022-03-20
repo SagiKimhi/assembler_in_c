@@ -13,7 +13,8 @@ static int isInstructionToken(const char *token);
  * If the operand is found to be valid, then 1 is returned. 
  * Otherwise, A descriptive error message is printed out along with the 
  * line number of the error which is specified by lineNumber, and 0 is returned. */
-static int validateDirectiveOperand(const char *operand, SentenceType type);
+static int validateDirectiveOperand
+(const char *operand, SentenceType type, uint32_t lineNumber);
 
 /* validateInstructionOperand: Validates that the operand specified by the
  * character pointer argument operand is a valid operand based on the provided
@@ -21,7 +22,8 @@ static int validateDirectiveOperand(const char *operand, SentenceType type);
  * then 1 is returned. Otherwise, An error is printed out upon error along with 
  * the line number of the error which is specified by lineNumber, 
  * and 0 is returned. */
-static int validateInstructionOperand(char *operand, AddressingMode addressingMode);
+static int validateInstructionOperand
+(char *operand, AddressingMode addressingMode, uint32_t lineNumber);
 /* ----------------------------------------------------------------	*/
 
 /* ----------------------------------------------------------------	*
@@ -78,22 +80,28 @@ SentenceType identifySentenceType(const char *token)
 int checkInstructionSentence(const char *operation, const char *sentence, 
 							uint16_t *instructionCounter, uint32_t lineNumber)
 {
+	const char *nextTokenPtr;
 	char token[MAX_LINE_LEN+1];
-	const char *nextTokenPtr = sentence;
-	int operationIndex, addressingMode, temp, i;
+	int isOriginOperand, isLegalOperand;
+	int operationIndex, addressingMode, operand;
 
+	/* Error checking */
 	if (!operation || !sentence || !instructionCounter)
 		return 0;
 
-	operationIndex = searchOperation(operation);
+	operationIndex	= searchOperation(operation);
 
 	if (!isValidOperationIndex(operationIndex))
 		return 0;
+	
+	/* variable instantiations */
+	nextTokenPtr			 = sentence;
+	isOriginOperand			 = (Operations[operationIndex].numOfOperands > 1);
+	nextTokenPtr			+= getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
+	(*instructionCounter)	+= getOperationMemoryWords(operationIndex);
 
-	nextTokenPtr += getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
-	(*instructionCounter) += getOperationMemoryWords(operationIndex);
-
-	for (i=0; i<Operations[operationIndex].numOfOperands; i++) {
+	/* Begin scanning the operands and seperators */
+	for (operand=1; operand<=Operations[operationIndex].numOfOperands; operand++) {
 		if (!(*token)) {
 			/* TODO: print error, missing operands */
 			fprintf(stderr, "Error in Line %lu: operation %s requires more operands\n", 
@@ -108,30 +116,33 @@ int checkInstructionSentence(const char *operation, const char *sentence,
 			return 0;
 		}
 
-		addressingMode = getAddressingMode(token);
-		temp = (!i && Operations[operationIndex].numOfOperands>1) ? 
-				isLegalOriginAddressingMode(operationIndex, addressingMode):
-				isLegalDestAddressingMode(operationIndex, addressingMode);
+		addressingMode	=	getAddressingMode(token);
+		isLegalOperand	=	(isOriginOperand) ? 
+							isLegalOriginAddressingMode(operationIndex, addressingMode):
+							isLegalDestAddressingMode(operationIndex, addressingMode);
 
-		if (!temp) {
+		if (!isLegalOperand) {
 			/* TODO: print error, invalid operand. */
 			fprintf(stderr, "Error in Line %lu: invalid operand '%s' for operation %s\n", 
 					lineNumber, token, Operations[operationIndex].opName);
 			return 0;
 		}
 
-		validateInstructionOperand(token, addressingMode);
-		nextTokenPtr += getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
-		(*instructionCounter) += getAdditionalMemoryWords(addressingMode);
+		if (!validateInstructionOperand(token, addressingMode, lineNumber))
+			return 0;
 
-		if (!i && *token && *token!=OPERAND_SEPERATOR) {
+		nextTokenPtr			+= getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
+		(*instructionCounter)	+= getAdditionalMemoryWords(addressingMode);
+
+		if (isOriginOperand && *token!=OPERAND_SEPERATOR) {
 			/* TODO: print error, missing seperator. */
 			fprintf(stderr, "Error in Line %lu: Missing comma\n", 
 					lineNumber);
 			return 0;
 		}
 
-		nextTokenPtr += getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
+		nextTokenPtr	+= getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
+		isOriginOperand  = 0;
 	}
 
 	if (*token) {
@@ -153,14 +164,17 @@ int checkInstructionSentence(const char *operation, const char *sentence,
 int checkDirectiveSentence(const char *sentence, SentenceType type,
 							uint16_t *dataCounter, uint32_t lineNumber)
 {
+	const char *nextTokenPtr;
 	char token[MAX_LINE_LEN+1];
-	const char *nextTokenPtr = sentence;
-	int operandFlag = 1, numOfOperands = 0, temp;
+	int isOperand, numOfOperands, tempResult;
 
 	if (!sentence || !dataCounter)
 		return 0;
 
-	nextTokenPtr += getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
+	nextTokenPtr	 = sentence;
+	nextTokenPtr	+= getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
+	isOperand		 = 1;
+	numOfOperands	 = 0;
 
 	if (!(*token)) {
 		/* TODO: print error, empty sentence - missing operands */
@@ -173,7 +187,7 @@ int checkDirectiveSentence(const char *sentence, SentenceType type,
 		if (type!=DIRECTIVE_DATA_SENTENCE && numOfOperands)
 			break;
 
-		if (operandFlag) {
+		if (isOperand) {
 			if (*token==OPERAND_SEPERATOR) {
 				/* TODO: print error, invalid seperator, expected operand. */
 				fprintf(stderr, "Error in Line %lu: expected an operand but encountered comma\n", 
@@ -181,16 +195,14 @@ int checkDirectiveSentence(const char *sentence, SentenceType type,
 				return 0;
 			}
 
-			if (!(temp=validateDirectiveOperand(token, type))) {
-				/* TODO: print error, invalid operand. */
-				fprintf(stderr, "Error in Line %lu: invalid directive operand '%s'\n", 
-						lineNumber, token);
+			if (!(tempResult=validateDirectiveOperand(token, type, lineNumber)))
 				return 0;
-			}
+
 			numOfOperands++;
-			(*dataCounter)	+=	(type==DIRECTIVE_DATA_SENTENCE 
-								|| type==DIRECTIVE_STRING_SENTENCE) ? temp: 0;
+			(*dataCounter)	+= (type==DIRECTIVE_DATA_SENTENCE || 
+								type==DIRECTIVE_STRING_SENTENCE) ? tempResult: 0;
 		}
+
 		else if (*token!=OPERAND_SEPERATOR) {
 			/* TODO: print error, expected seperator. */
 			fprintf(stderr, "Error in Line %lu: Missing comma\n", 
@@ -198,11 +210,11 @@ int checkDirectiveSentence(const char *sentence, SentenceType type,
 			return 0;
 		}
 
-		operandFlag		=	!operandFlag;
+		isOperand		=	!isOperand;
 		nextTokenPtr	+=	getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
 	}
 
-	if (operandFlag) {
+	if (isOperand) {
 		/* TODO: print error, expected operand. */
 		fprintf(stderr, "Error in Line %lu: expected an operand but encountered end of line\n", 
 				lineNumber);
@@ -229,7 +241,8 @@ int checkDirectiveSentence(const char *sentence, SentenceType type,
  * then 1 is returned. Otherwise, An error is printed out upon error along with 
  * the line number of the error which is specified by lineNumber, 
  * and 0 is returned. */
-static int validateInstructionOperand(char *operand, AddressingMode addressingMode)
+static int validateInstructionOperand
+(char *operand, AddressingMode addressingMode, uint32_t lineNumber)
 {
 	int16_t temp = 0;
 
@@ -241,23 +254,20 @@ static int validateInstructionOperand(char *operand, AddressingMode addressingMo
 			/* TODO: print error, invalid immediate operand */
 			return 0;
 
+		/* An index addressing mode is a combination of direct and
+		 * register direct, therefore there is no break after the condition
+		 * and we move on to checking operand as direct as well. */
+		case INDEX:
+			if (!scanIndexExpression(operand, &temp)) {
+				/* TODO: print error, invalid index */
+				return 0;
+			}
+
 		case DIRECT:
 			if (!isValidLabelTag(operand))
 				return 1;
 
 			/* TODO: print error, invalid operand. */
-			return 0;
-
-		case INDEX:
-			if (scanIndexExpression(operand, &temp)) {
-				if (!isValidLabelTag(operand))
-					return 1;
-
-				/* TODO: print error, invalid label tag */
-				return 0;
-			}
-
-			/* TODO: print error, invalid index */
 			return 0;
 
 		case REGISTER_DIRECT:
@@ -274,7 +284,8 @@ static int validateInstructionOperand(char *operand, AddressingMode addressingMo
  * If the operand is found to be valid, then 1 is returned. 
  * Otherwise, A descriptive error message is printed out along with the 
  * line number of the error which is specified by lineNumber, and 0 is returned. */
-static int validateDirectiveOperand(const char *operand, SentenceType type)
+static int validateDirectiveOperand
+(const char *operand, SentenceType type, uint32_t lineNumber)
 {
 	const char DATA_TEST_FORMAT[] = DATA_SCAN_FORMAT"%c";
 	char tempC = 0;

@@ -1,6 +1,6 @@
 #ifndef _ERRORS_H
 #define _ERRORS_H
-#include <stdio.h>
+#include <libraries.h>
 
 #ifndef FAILURE
 #define FAILURE -1
@@ -14,7 +14,7 @@
  *							Error Flags:							*
  * ----------------------------------------------------------------	*/
 typedef enum GeneralErrorFlags {
-	UNKNOWN_KEYWORD = 0x1,
+	UNKNOWN_IDENTIFIER = 0x1,
 	MEMORY_OVERFLOW = 0x2
 } GeneralErrorFlag;
 
@@ -28,10 +28,8 @@ typedef enum LabelErrorFlags {
 	INVALID_LABEL_LEN = 0x1,
 	INVALID_LABEL_NAME = 0x2,
 	INVALID_LABEL_SYNTAX = 0x4,
-	MISSING_SPACE_AFTER_DEFINITION = 0x8,
-	MISSING_LABEL_DEFINITION_SUFFIX = 0x10,
-	LABEL_ALREADY_DEFINED = 0x20,
-	LABEL_ALREADY_DECLARED_EXTERN = 0x40
+	LABEL_ALREADY_DEFINED = 0x8,
+	LABEL_ALREADY_DECLARED_EXTERN = 0x10
 } LabelErrorFlag;
 
 typedef enum InstructionErrorFlags {
