@@ -4,6 +4,7 @@
 #include <libraries.h>
 #include <operations.h>
 #include <labels.h>
+#include <errors.h>
 
 #define DIRECTIVE_TOKEN_PREFIX	'.'
 #define DATA_SCAN_FORMAT		"%hd"

@@ -3,6 +3,7 @@
 #include <libraries.h>
 #include <operations.h>
 #include <addressingModes.h>
+#include <errors.h>
 
 /* ----------------------------------------------------------------	*
  *			    Constants, Defines, Typedefs, etc.  			    *

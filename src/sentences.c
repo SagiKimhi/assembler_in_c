@@ -1,3 +1,4 @@
+#include "errors.h"
 #include <sentences.h>
 
 /* ----------------------------------------------------------------	*
@@ -91,8 +92,9 @@ int checkInstructionSentence(const char *operation, const char *sentence,
 
 	operationIndex	= searchOperation(operation);
 
-	if (!isValidOperationIndex(operationIndex))
+	if (!isValidOperationIndex(operationIndex)) {
 		return 0;
+	}
 	
 	/* variable instantiations */
 	nextTokenPtr			 = sentence;
@@ -103,16 +105,15 @@ int checkInstructionSentence(const char *operation, const char *sentence,
 	/* Begin scanning the operands and seperators */
 	for (operand=1; operand<=Operations[operationIndex].numOfOperands; operand++) {
 		if (!(*token)) {
-			/* TODO: print error, missing operands */
-			fprintf(stderr, "Error in Line %lu: operation %s requires more operands\n", 
-					lineNumber, Operations[operationIndex].opName);
+			printInstructionError(operation, MISSING_OPERANDS, lineNumber);
 			return 0;
 		}
 
 		if (*token==OPERAND_SEPERATOR) {
-			/* TODO: print error, invalid comma, expected an operand */;
+			printInstructionError(operation, INVALID_COMMA, lineNumber);
+			/* TODO: print error, invalid comma, expected an operand
 			fprintf(stderr, "Error in Line %lu: expected an operand but encountered comma\n", 
-					lineNumber);
+					lineNumber);*/
 			return 0;
 		}
 
@@ -122,9 +123,13 @@ int checkInstructionSentence(const char *operation, const char *sentence,
 							isLegalDestAddressingMode(operationIndex, addressingMode);
 
 		if (!isLegalOperand) {
-			/* TODO: print error, invalid operand. */
+			if (isOriginOperand)
+				printInstructionError(operation, ILLEGAL_ORIGIN_ADDRESSING_MODE, lineNumber);
+			else
+				printInstructionError(operation, ILLEGAL_DEST_ADDRESSING_MODE, lineNumber);
+			/* TODO: print error, invalid operand. 
 			fprintf(stderr, "Error in Line %lu: invalid operand '%s' for operation %s\n", 
-					lineNumber, token, Operations[operationIndex].opName);
+					lineNumber, token, Operations[operationIndex].opName);*/
 			return 0;
 		}
 
@@ -135,9 +140,10 @@ int checkInstructionSentence(const char *operation, const char *sentence,
 		(*instructionCounter)	+= getAdditionalMemoryWords(addressingMode);
 
 		if (isOriginOperand && *token!=OPERAND_SEPERATOR) {
-			/* TODO: print error, missing seperator. */
+			printCommaError(MISSING_COMMA, lineNumber);
+			/* TODO: print error, missing seperator. 
 			fprintf(stderr, "Error in Line %lu: Missing comma\n", 
-					lineNumber);
+					lineNumber);*/
 			return 0;
 		}
 
@@ -146,9 +152,10 @@ int checkInstructionSentence(const char *operation, const char *sentence,
 	}
 
 	if (*token) {
-		/* TODO: print error, extraneous text. */
+		printGeneralError(token, EXTRANEOUS_TEXT, lineNumber);
+		/* TODO: print error, extraneous text. 
 		fprintf(stderr, "Error in Line %lu: extraneous text.\n", 
-				lineNumber);
+				lineNumber);*/
 		return 0;
 	}
 
@@ -189,9 +196,10 @@ int checkDirectiveSentence(const char *sentence, SentenceType type,
 
 		if (isOperand) {
 			if (*token==OPERAND_SEPERATOR) {
-				/* TODO: print error, invalid seperator, expected operand. */
+				printCommaError(INVALID_COMMA, lineNumber);
+				/* TODO: print error, invalid seperator, expected operand. 
 				fprintf(stderr, "Error in Line %lu: expected an operand but encountered comma\n", 
-						lineNumber);
+						lineNumber);*/
 				return 0;
 			}
 
@@ -204,9 +212,10 @@ int checkDirectiveSentence(const char *sentence, SentenceType type,
 		}
 
 		else if (*token!=OPERAND_SEPERATOR) {
-			/* TODO: print error, expected seperator. */
+			printCommaError(MISSING_COMMA, lineNumber);
+			/* TODO: print error, expected seperator. 
 			fprintf(stderr, "Error in Line %lu: Missing comma\n", 
-					lineNumber);
+					lineNumber);*/
 			return 0;
 		}
 
@@ -222,9 +231,10 @@ int checkDirectiveSentence(const char *sentence, SentenceType type,
 	}
 
 	if (*token) {
-		/* TODO: print error, extraneous text. */
+		printGeneralError(token, EXTRANEOUS_TEXT, lineNumber);
+		/* TODO: print error, extraneous text. 
 		fprintf(stderr, "Error in Line %lu: extraneous text.\n", 
-				lineNumber);
+				lineNumber);*/
 		return 0;
 	}
 
@@ -252,6 +262,7 @@ static int validateInstructionOperand
 				return 1;
 
 			/* TODO: print error, invalid immediate operand */
+			printAddressingModeError(INVALID_IMMEDIATE_OPERAND, lineNumber);
 			return 0;
 
 		/* An index addressing mode is a combination of direct and
@@ -260,6 +271,7 @@ static int validateInstructionOperand
 		case INDEX:
 			if (!scanIndexExpression(operand, &temp)) {
 				/* TODO: print error, invalid index */
+				printAddressingModeError(INVALID_INDEX, lineNumber);
 				return 0;
 			}
 
@@ -268,6 +280,7 @@ static int validateInstructionOperand
 				return 1;
 
 			/* TODO: print error, invalid operand. */
+			printLabelError(operand, INVALID_LABEL_NAME, lineNumber);
 			return 0;
 
 		case REGISTER_DIRECT:
@@ -298,6 +311,7 @@ static int validateDirectiveOperand
 
 			/* TODO: print error, invalid data type,
 			 * expected an integer */
+			printDirectiveDataError(INVALID_DATA_TYPE, lineNumber);
 			return 0;
 
 		case DIRECTIVE_STRING_SENTENCE:
@@ -305,6 +319,7 @@ static int validateDirectiveOperand
 				for (; operand[tempN]; tempN++) {
 					if (!isprint(operand[tempN])) {
 						/* TODO: print error: unprintable character */
+						printDirectiveStringError(UNPRINTABLE_STRING_CHARACTER, lineNumber);
 						return 0;
 					}
 				}
@@ -315,6 +330,7 @@ static int validateDirectiveOperand
 			}
 
 			/* TODO: print error, missing string delimiters. */
+			printDirectiveStringError(MISSING_STRING_TOKEN, lineNumber);
 			return 0;
 
 		case DIRECTIVE_ENTRY_SENTENCE:

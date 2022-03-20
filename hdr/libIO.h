@@ -1,6 +1,7 @@
 #ifndef _lib_IO_H
 #define _lib_IO_H
 #include <libraries.h>
+#include <errors.h>
 
 #define COMMENT_PREFIX ';'
 #define OPERAND_SEPERATOR ','
