@@ -11,14 +11,12 @@ int main(int argc, char **argv)
 	/* Ensure that command line args were provided */
 	if (argc == 1) {
 		__ERROR__MISSING_ARGS(argv[0]);
-		exit(EXIT_FAILURE);
+		return EXIT_FAILURE;
 	}
 
 	/* Begin assembling the files */
 	for (arg = 1; arg < argc; arg++) {
-		/* Start the preprocessor */
 		if (macroPreprocessor(argv[arg])==EXIT_SUCCESS)
-			/* Start the assembler */
 			startAssembler(argv[arg]);
 	}
 

@@ -9,8 +9,6 @@
 #define MEMSIZE 8192			/* the total number of the RAM's memory cells */
 #define DATA_MAX 524287			/* maximum signed 20 bit integer */
 #define DATA_MIN 524288			/* minimum signed 20 bit integer */
-#define MAX_REGISTER_NUMBER 15	/* maximum register number (rN: r0, r1, ..., rN) */
-#define MIN_REGISTER_NUMBER 0	/* minimum register number */
 #define MAX_FILE_EXTENSION_LEN 4
 #define MAX_OPERATION_WORDS 2
 #define MAX_ADDITIONAL_WORDS 4

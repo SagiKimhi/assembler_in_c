@@ -42,6 +42,13 @@ void addTreeNode(Tree *tree, char *key, void *data);
 /* ----------------------------------------------------------------	*
  *								Getters								*
  * ----------------------------------------------------------------	*/
+/* getLeftChild: Returns a TreeNode pointer to the binaryTree's root TreeNode
+ * which is currently set. Returns NULL if either the tree or its root are NULL.
+ *
+ * @param tree A pointer to the Tree object which root is to be returned.
+ * @return Returns the root that is currently set for tree as a TreeNode object */
+TreeNode *getRoot(Tree *tree);
+
 /* searchTreeNode: Searches a treeNode in the tree structure by key.
  * returns a pointer to the node if such node exists, or NULL otherwise. 
  *
@@ -52,7 +59,6 @@ void addTreeNode(Tree *tree, char *key, void *data);
  * otherwise the function will return a NULL pointer. */
 TreeNode *searchTreeNode(Tree *tree, char *key);
 
-TreeNode *getRoot(Tree *tree);
-
 void printTree(FILE *stream, Tree *tree, voidOperationPtr printData);
+
 #endif

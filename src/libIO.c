@@ -52,8 +52,10 @@ FILE *openFile(const char *fileName, const char *fileExtension, const char *mode
 
 	sprintf(newFileName, "%s%s", fileName, fileExtension);
 
-	if (!(fp=fopen(newFileName, mode)))
-		perror("Error: ");
+	if (!(fp=fopen(newFileName, mode))) {
+		printf("Error: unable to open/create file '%s'.\n", newFileName);
+		perror(NULL);
+	}
 
 	free(newFileName);
 	return fp;
@@ -83,6 +85,8 @@ int deleteFile(const char *fileName, const char *fileExtension)
 	sprintf(newFileName, "%s%s", fileName, fileExtension);
 
 	if (remove(newFileName)) {
+		printf("Error: Unable to delete file '%s'.\n", newFileName);
+		perror(NULL);
 		free(newFileName);
 		return -1;
 	}
@@ -117,35 +121,6 @@ int getToken(char *dest, size_t buffSize, const char *str)
 	dest[j] = '\0';
 	return i;
 }
-
-/* s_getWord: Scans a single non whitespace word from bufferIn and saves it
- * into bufferOut. Returns the length of the word that was scanned upon success.
- * Returns FAILURE (-1) upon failure, returns 0 if bufferIn's word was longer
- * than the size specified by outSize. */
-int s_getWord(const char *bufferIn, char *bufferOut, size_t outSize)
-{
-	int i, j;
-
-	if (!bufferIn || !bufferOut)
-		return FAILURE;
-
-	/* skip all spaces until reaching the first word in bufferOut */
-	for (i=0; isspace(bufferIn[i]); i++)
-		;
-
-	/* copy all non whitespace characters from bufferIn to bufferOut */
-	for (j=0; bufferIn[i] && j<outSize-1 && !isspace(bufferIn[i]); i++, j++)
-		bufferOut[j] = bufferIn[i];
-
-	bufferOut[j] = '\0';
-
-	/* if bufferIn[i] is not whitespace then word was longer than outSize */
-	if (!isspace(bufferIn[i]) && bufferIn[i]!='\0')
-		return 0;
-
-	return j;
-}
-
 
 /* getLine: scans a line of input from stream with a maximum length of size and saves it 
  * into buffer, including the newline character. This function also removes trailing
@@ -204,23 +179,34 @@ int getLine(char *buffer, int size, FILE *stream)
  * or EOF if reached EOF before any characters could be saved into buffer. */
 int getWord(char *buffer, size_t size, FILE *stream)
 {
-	int i, c;
+	int inString, i, c;
 
 	if (!buffer || !size || !stream || feof(stream))
-		return 0;
+		return EOF;
 
 	/* Skip spaces - including newlines */
 	for (c=fgetc(stream); c!=EOF && isspace(c); c=fgetc(stream))
 		;
 	/* Scan string */
-	for (i=0; c!=EOF && !isspace(c) && i<(size-1); c=fgetc(stream))
-		buffer[i++] = c;
+	for (i=inString=0; c!=EOF && i<(size-1); c=fgetc(stream), i++) {
+		buffer[i] = c;
 
-	if (!i)
-		return EOF;
-	
+		if (!inString && c=='\"') {
+			inString = 1;
+		}
+		else if (inString) {
+			if (c=='\n')
+				break;
+		}
+		else if (isspace(c))
+			break;
+	}
+
 	buffer[i] = '\0';
 
+	if (!i)
+		return 0;
+	
 	if (isspace(c))
 		ungetc(c, stream);
 

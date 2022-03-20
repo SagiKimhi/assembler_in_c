@@ -1,6 +1,7 @@
 #ifndef _lib_IO_H
 #define _lib_IO_H
 #include <libraries.h>
+#include <errors.h>
 
 #define COMMENT_PREFIX ';'
 #define OPERAND_SEPERATOR ','
@@ -13,12 +14,6 @@ FILE *openFile(const char *fileName, const char *fileExtension, const char *mode
 int deleteFile(const char *fileName, const char *fileExtension);
 
 int getToken(char *dest, size_t buffSize, const char *str);
-
-/* s_getWord: Scans a single non whitespace word from bufferIn and saves it
- * into bufferOut. Returns the length of the word that was scanned upon success.
- * Returns FAILURE (-1) upon failure, returns 0 if bufferIn's word was longer
- * than the size specified by outSize. */
-int s_getWord(const char *bufferIn, char *bufferOut, size_t outSize);
 
 /* getLine: scans a line of input from stream with a maximum length of size and saves it 
  * into buffer, including the newline character. This function also removes trailing

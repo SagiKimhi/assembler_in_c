@@ -1,3 +1,4 @@
+#include "sentences.h"
 #include <assembler.h>
 
 /* ----------------------------------------------------------------	*
@@ -5,6 +6,9 @@
  * ----------------------------------------------------------------	*/
 #define isComma(TOKEN)		((TOKEN) == OPERAND_SEPERATOR)
 #define isComment(TOKEN)	((TOKEN) == COMMENT_PREFIX)
+#define __WARNING__EMPTY_LABEL_DEF(LABEL, LINE_NUMBER)\
+	printf("Warning: meaningless label definition in line number %lu of label |%s| "\
+			"due to an empty sentence.\n", LINE_NUMBER, LABEL);
 
 /* ----------------------------------------------------------------	*
  *						Static Function Prototypes					*
@@ -22,6 +26,9 @@ static FILE *createExternFile(const char *fileName);
 static FILE *createObjectFile
 (const char *fileName, uint16_t instructionCounter, uint16_t dataCounter);
 
+static void updateSymbolTreeAddresses
+(TreeNode *symbolTreeRoot, uint16_t instructionCounter);
+
 static int startFirstPass(	FILE *inputStream, Tree *symbolTree, 
 							uint16_t *instructionCounter, uint16_t *dataCounter);
 
@@ -29,39 +36,59 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 							uint16_t dataCounter, uint16_t instructionCounter);
 
 /* ----------------------------------------------------------------	*
- *						Main Public Function						*
+ *							Public Functions						*
  * ----------------------------------------------------------------	*/
+/* startAssembler: The main assembler function which initiates the first
+ * pass of the assembler as well as the second pass if no errors pop up
+ * during the first pass. 
+ * The function returns a value of 1 if both passes completed successfully
+ * without any errors, otherwise, 0 will be returned.
+ * It is worth to mention that warnings do not count as errors and therefore
+ * even if a warning was issued, the code will still be assembled and the
+ * returned value would still be 1.*/
 int startAssembler(const char *fileName)
 {
 	/* Variable definitions */
 	int validFlag;
 	Tree *symbolTree;
+	FILE *inputStream; 
 	uint16_t instructionCounter, dataCounter;
-	FILE *inputStream = openFile(fileName, PREPROCESSED_FILE_EXTENSION, "r");
+
+	/* Open the preprocessed source file for reading */
+	inputStream = openFile(fileName, PREPROCESSED_FILE_EXTENSION, "r");
 
 	if (!inputStream)
 		return EXIT_FAILURE;
 
-	/* Variable Instantiations */
-	symbolTree = newTree();
+	/* Create a new binary tree to store labels */
+	if (!(symbolTree = newTree())) {
+		fclose(inputStream);
+		return EXIT_FAILURE;
+	}
+
+	/* Instantiate data and instruction counters */
 	dataCounter = 0;
 	instructionCounter = FIRST_MEMORY_ADDRESS;
 	
 	/* Initiate first pass */
-	validFlag = startFirstPass(	inputStream, symbolTree, 
-								&instructionCounter, &dataCounter);
+	validFlag = startFirstPass
+				(inputStream, symbolTree, &instructionCounter, &dataCounter);
 
+	/* if no errors popped up - rewind file, update counter and 
+	 * symbol tree and initiate the second pass. */
 	if (validFlag) {
 		rewind(inputStream);
 		dataCounter += instructionCounter;
+		updateSymbolTreeAddresses(getRoot(symbolTree), instructionCounter);
 		validFlag = startSecondPass(inputStream, fileName, symbolTree, 
 									dataCounter, instructionCounter);
 	}
 
+	/* close file and free memory */
 	fclose(inputStream);
-	printTree(stdout, symbolTree, printLabel);
 	deleteTree(symbolTree, deleteLabel);
-	return (validFlag) ? EXIT_SUCCESS: EXIT_FAILURE;
+
+	return ((validFlag) ? EXIT_SUCCESS: EXIT_FAILURE);
 }
 
 static int startFirstPass(FILE *inputStream, Tree *symbolTree, 
@@ -84,8 +111,9 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree,
 		labelFlag = 0;
 
 		if (!result) {
-		/* TODO: add error for line being longer than MAX_LINE_LEN */
-			fprintf(stderr, "Error in line %lu: line too long.\n", lineNumber);
+			printGeneralError(inputLine, INVALID_LINE_LENGTH, lineNumber);
+			/* TODO: add error for line being longer than MAX_LINE_LEN 
+			fprintf(stderr, "Error in line %lu: line too long.\n", lineNumber);*/
 			continue;
 		}
 
@@ -96,20 +124,22 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree,
 			continue;
 
 		if (isLineLabelDefinition(token)) {
-			if (isValidLabelDefinition(token, labelName)) {
-				/* TODO: invalid label def, print errors */
+			if ((result=isValidLabelDefinition(token, labelName))) {
+				printLabelError(token, result, lineNumber);
+				/* TODO: invalid label def, print errors 
 				fprintf(stderr, "Error in line %lu: invalid label definition '%s'.\n", 
-						lineNumber, token);
+						lineNumber, token);*/
 				validFlag = 0;
 			}
 			else {
 				TreeNode *temp = searchTreeNode(symbolTree, labelName);
 
 				if (temp!=NULL) {
-					/* TODO: Label exists, print error */
+					printLabelError(labelName, LABEL_ALREADY_DEFINED, lineNumber);
+					/* TODO: Label exists, print error 
 					fprintf(stderr, "Error in line %lu: label '%s' is already defined:\n", 
 							lineNumber, labelName);
-					printTreeNode(stderr, temp, printLabel);
+					printTreeNode(stderr, temp, printLabel); */
 					validFlag = 0;
 				}
 				else
@@ -120,15 +150,16 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree,
 		}
 
 		if (isComma(*token)) {
-			__ERROR__INVALID_COMMA(lineNumber);
+			printCommaError(INVALID_COMMA, lineNumber);
 			continue;
 		}
 
 		switch (identifySentenceType(token)) {
 			case INVALID_SENTENCE:
-				/* TODO: Print error - unknown identifier. */
+				printGeneralError(token, UNKNOWN_IDENTIFIER, lineNumber);
+				/* TODO: Print error - unknown identifier. 
 				fprintf(stderr, "Error in line %lu: unknown identifier '%s'.\n", 
-						lineNumber, token);
+						lineNumber, token);*/
 				validFlag = 0;
 				break;
 
@@ -172,7 +203,7 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree,
 				break;
 
 			case DIRECTIVE_EXTERN_SENTENCE:
-				if (!checkDirectiveSentence(nextTokenPtr, DIRECTIVE_ENTRY_SENTENCE,
+				if (!checkDirectiveSentence(nextTokenPtr, DIRECTIVE_EXTERN_SENTENCE,
 											dataCounter, lineNumber				)) {
 					/* TODO: print error, invalid extern sentence */
 					validFlag = 0;
@@ -183,22 +214,22 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree,
 				label = getTreeNodeData(searchTreeNode(symbolTree, labelName));
 
 				if (label!=NULL && getLabelType(label)!=EXTERN) {
-					/* TODO: print error - label already defined in this file */
+					printDirectiveExternError(labelName, PREDEFINED_NON_EXTERN_LABEL, lineNumber);
+					/* TODO: print error - label already defined in this file 
 					fprintf(stderr, "Error in line %lu: label '%s' is already defined "
 							"in this file and therefore cannot be defined as extern.\n", 
-							lineNumber, token);
+							lineNumber, token);*/
 					validFlag = 0;
-					break;
 				}
+				else
+					addTreeNode(symbolTree, labelName, newLabel(0, EXTERN));
 
-				addTreeNode(symbolTree, labelName, newLabel(0, EXTERN));
 				break;
 
 			case EMPTY_SENTENCE:
 				if (labelFlag)
 					/* TODO: print warning, empty label definition. */
-					fprintf(stderr, "Warning: empty label definition in line %lu for label: '%s'.\n", 
-							lineNumber, token);
+					__WARNING__EMPTY_LABEL_DEF(labelName, lineNumber);
 
 				break;
 
@@ -213,6 +244,7 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree,
 
 	if ((*dataCounter + *instructionCounter) > MEMSIZE) {
 		/* TODO: print error, max memory exceeded. */
+		printGeneralError(NULL, MEMORY_OVERFLOW, lineNumber);
 		validFlag = 0;
 	
 	}
@@ -248,7 +280,8 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 	objectFilePtr = entryFilePtr = externFilePtr = tempDataFilePtr = NULL;
 
 	if (dataCounter && !(tempDataFilePtr=tmpfile())) {
-		perror("Error: ");
+		printf("Internal error in second pass: Unable to create data file.\n");
+		perror(NULL);
 		return 0;
 	}
 
@@ -313,8 +346,11 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 							label = getTreeNodeData(node);
 
 							if (!label) {
-								/* TODO: print error, label does not exist. */
-								fprintf(stderr, "label %s does not exist\n", token);
+								printInstructionError
+								(Operations[operationIndex].opName, 
+								OPERAND_IS_UNDEFINED_LABEL, lineNumber);
+								/* TODO: print error, label does not exist.
+								fprintf(stderr, "label %s does not exist\n", token);*/
 								validFlag = 0;
 							}
 
@@ -324,10 +360,6 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 							switch (getLabelType(label)) {
 								case DATA:
 								case STRING:
-									if (getAddress(label)<instructionCounter)
-										setLabelAddress(label, getAddress(label)
-																+instructionCounter);
-
 								case CODE:
 									additionalWords[i++] |= RELOCATABLE_CODE | 
 															getBaseAddress(label);
@@ -336,10 +368,9 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 									break;
 
 								case EXTERN:
-									if (!externFilePtr &&
-										!(externFilePtr=createExternFile(fileName))) {
+									if (!externFilePtr	&& 
+										!(externFilePtr = createExternFile(fileName)))
 											validFlag = 0;
-									}
 
 									if (validFlag) {
 										additionalWords[i++] = EXTERNAL_CODE;
@@ -386,7 +417,7 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 						continue;
 
 					if (sentenceType==DIRECTIVE_DATA_SENTENCE) {
-						sscanf(token, "%hd", &temp);
+						sscanf(token, DATA_SCAN_FORMAT, &temp);
 						memoryWordCode |= ABSOLUTE_CODE | temp;
 						encodeToFile
 						(tempDataFilePtr, dataAddress++, memoryWordCode);
@@ -400,7 +431,7 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 
 						memoryWordCode = ABSOLUTE_CODE;
 						encodeToFile
-						(tempDataFilePtr, dataAddress, memoryWordCode);
+						(tempDataFilePtr, dataAddress++, memoryWordCode);
 					}
 				}
 
@@ -412,11 +443,14 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 				label = getTreeNodeData(node);
 
 				if (!node) {
+					printDirectiveEntryError(token, UNDEFINED_LABEL, lineNumber);
 					/* TODO: print error, label is undefined, 
 					 * cannot define an undefined label as entry. */
 					validFlag = 0;
 				} 
 				else if (getLabelType(label) == EXTERN) {
+					printDirectiveEntryError
+					(token, LABEL_ALREADY_DECLARED_EXTERN, lineNumber);
 					/* TODO: print error, a label may not be 
 					 * defined as both extern and entry.*/
 					validFlag = 0;
@@ -513,4 +547,31 @@ static void printExtern(FILE *stream, TreeNode *node, uint16_t address)
 {
 	fprintf(stream, "%s BASE %04hu\n", getTreeNodeKey(node), address++);
 	fprintf(stream, "%s OFFSET %04hu\n", getTreeNodeKey(node), address);
+}
+
+static void updateSymbolAddress
+(Label *label, uint16_t instructionCounter)
+{
+	uint16_t temp;
+
+	switch(getLabelType(label)) {
+		case DATA:
+		case STRING:
+			if ((temp=getAddress(label))<instructionCounter)
+				setLabelAddress(label, temp+instructionCounter);
+
+		default:
+			break;
+	}
+}
+
+static void updateSymbolTreeAddresses
+(TreeNode *symbolTreeRoot, uint16_t instructionCounter)
+{
+	if (!symbolTreeRoot)
+		return;
+
+	updateSymbolAddress(getTreeNodeData(symbolTreeRoot), instructionCounter);
+	updateSymbolTreeAddresses(getLeftChild(symbolTreeRoot), instructionCounter);
+	updateSymbolTreeAddresses(getRightChild(symbolTreeRoot), instructionCounter);
 }

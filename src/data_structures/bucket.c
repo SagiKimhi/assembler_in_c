@@ -1,11 +1,22 @@
 #include <bucket.h>
 
+/* ----------------------------------------------------------------	*
+ *			Constants, Defines, and Structure declarations			*
+ * ----------------------------------------------------------------	*/
 struct bucket {
 	char *key;
 	void *data;
 };
+/* ----------------------------------------------------------------	*/
 
+/* ----------------------------------------------------------------	*
+ *						Static Function Prototypes					*
+ * ----------------------------------------------------------------	*/
+/* setBucketKey: A private function used by the constructor to allocate
+ * memory and store a copy of key in the bucket's key variable.
+ * Returns a pointer to bucket's key on success, or NULL upon failure. */
 static char *setBucketKey(Bucket *bucket, char *key);
+/* ----------------------------------------------------------------	*/
 
 /* ----------------------------------------------------------------	*
  *							De/Constructor							*

@@ -9,6 +9,7 @@
 #include <libIO.h>
 #include <sizes.h>
 #include <sentences.h>
+#include <errors.h>
 
 int startAssembler(const char *fileName);
 

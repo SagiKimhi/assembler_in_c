@@ -6,7 +6,6 @@
 #include <ctype.h>
 #include <sizes.h>
 #include <limits.h>
-#include <errors.h>
 
 #define FAILURE -1
 #define FILE_EXTENSION_TOKEN		'.'
