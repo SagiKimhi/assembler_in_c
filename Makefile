@@ -10,7 +10,7 @@ CFLAGS = -ansi -pedantic -g -Wall
 OFLAGS = -c
 
 # Final executable/binary
-BIN = asmake
+BIN = assembler
 
 # Directory Variables
 HEADERDIR = hdr
