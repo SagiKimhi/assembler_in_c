@@ -11,7 +11,12 @@ void printGeneralError
 			break;
 
 		case EXTRANEOUS_TEXT:
-			printf("Error in line %lu: extraneous text provided.\n", lineNumber);
+			printf("Error in line %lu: unnecessary extraneous text provided.\n", lineNumber);
+			break;
+
+		case INVALID_LINE_LENGTH:
+			printf("Error in line %lu: line length exceeds the maximum length "
+					"allowed of %d characters.\n", lineNumber, MAX_LINE_LEN);
 			break;
 
 		case MEMORY_OVERFLOW:
@@ -70,11 +75,6 @@ void printLabelError
 					"labels must differ in name.\n", labelName);
 			break;
 
-		case LABEL_ALREADY_DECLARED_EXTERN:
-			printf(	"unable to define label |%s|. This label was already declared extern.\n",
-					labelName);
-			break;
-
 		case MISSING_LABEL_DEFINITION_SUFFIX:
 			printf("label definitions must end with the appropriate suffix ':'\n");
 			break;
@@ -107,6 +107,17 @@ void printInstructionError
 
 		case OPERAND_IS_UNDEFINED_LABEL:
 			printf("undefined label used as operand for operation |%s|.\n", operation);
+			break;
+	}
+}
+
+void printDirectiveError(DirectiveErrorFlag flag, uint32_t lineNumber)
+{
+	printf("Error in line number %lu: ", lineNumber);
+
+	switch (flag) {
+		case EMPTY_DIRECTIVE_SENTENCE:
+			printf("encountered a directive without operands.\n");
 			break;
 	}
 }
@@ -146,6 +157,35 @@ void printDirectiveStringError(DirectiveStrErrorFlag flag, uint32_t lineNumber)
 	}
 }
 
+void printDirectiveEntryError
+(const char *expr, DirectiveEntryErrorFlag flag, uint32_t lineNumber)
+{
+	printf("Error in line number %lu: ", lineNumber);
+
+	switch (flag) {
+		case UNDEFINED_LABEL:
+			printf(	"label |%s| is declared as entry but was never defined.\n", expr);
+			break;
+
+		case LABEL_ALREADY_DECLARED_EXTERN:
+			printf(	"cannot declare label |%s| as entry since it is already declared "
+					"as extern in this file.\n", expr);
+			break;
+	}
+}
+
+void printDirectiveExternError
+(const char *expr, DirectiveExtErrorFlag flag, uint32_t lineNumber)
+{
+	printf("Error in line number %lu: ", lineNumber);
+
+	switch (flag) {
+		case PREDEFINED_NON_EXTERN_LABEL:
+			printf(	"label |%s| is already defined in this file and "
+					"therefore cannot be declared extern.\n", expr);
+	}
+}
+
 void printAddressingModeError(AddressModeErrorFlag flag, uint32_t lineNumber)
 {
 	printf("Error in line %lu: ", lineNumber);
@@ -153,13 +193,13 @@ void printAddressingModeError(AddressModeErrorFlag flag, uint32_t lineNumber)
 	switch (flag) {
 		case INVALID_INDEX:
 			printf(	"the index of an index addressing mode operand must be a register "
-					"with a register number of between %d to %d.\n", 
+					"with a register number between %d to %d.\n", 
 					MIN_INDEX_REGISTER_NUMBER, MAX_REGISTER_NUMBER);
 			break;
 		
 		case INVALID_IMMEDIATE_OPERAND:
-			printf("invalid operand for immediate addressing mode.\n"
-					"operand must be a short (max 16 bit) integer.\n");
+			printf("invalid immediate addressing mode operand, "
+					"operand must be a short (16 bit) integer.\n");
 			break;
 	}
 }

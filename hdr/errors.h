@@ -16,7 +16,8 @@
 typedef enum GeneralErrorFlags {
 	UNKNOWN_IDENTIFIER = 0x1,
 	EXTRANEOUS_TEXT = 0x2,
-	MEMORY_OVERFLOW = 0x4
+	INVALID_LINE_LENGTH = 0x4,
+	MEMORY_OVERFLOW = 0x8
 } GeneralErrorFlag;
 
 typedef enum CommaErrorFlags {
@@ -30,8 +31,7 @@ typedef enum LabelErrorFlags {
 	INVALID_LABEL_NAME = 0x2,
 	INVALID_LABEL_SYNTAX = 0x4,
 	LABEL_ALREADY_DEFINED = 0x8,
-	LABEL_ALREADY_DECLARED_EXTERN = 0x10,
-	MISSING_LABEL_DEFINITION_SUFFIX = 0x20
+	MISSING_LABEL_DEFINITION_SUFFIX = 0x10
 } LabelErrorFlag;
 
 typedef enum InstructionErrorFlags {
@@ -41,6 +41,10 @@ typedef enum InstructionErrorFlags {
 	ILLEGAL_DEST_ADDRESSING_MODE = 0x8,
 	OPERAND_IS_UNDEFINED_LABEL = 0x10
 } InstructionErrorFlag;
+
+typedef enum DirectiveErrorFlags {
+	EMPTY_DIRECTIVE_SENTENCE = 0x1
+} DirectiveErrorFlag;
 
 typedef enum DirectiveDataErrorFlags {
 	MISSING_DATA = 0x1,
@@ -54,11 +58,12 @@ typedef enum DirectiveStrErrorFlags {
 } DirectiveStrErrorFlag;
 
 typedef enum DirectiveEntryErrorFlags {
-	UNDEFINED_ENTRY_LABEL = 0x1
+	UNDEFINED_LABEL = 0x1,
+	LABEL_ALREADY_DECLARED_EXTERN = 0x2
 } DirectiveEntryErrorFlag;
 
 typedef enum DirectiveExtErrorFlags {
-	PREDEFINED_EXTERN_LABEL = 0x1
+	PREDEFINED_NON_EXTERN_LABEL = 0x1
 } DirectiveExtErrorFlag;
 
 typedef enum AddressModeErrorFlags {
@@ -103,9 +108,17 @@ void printLabelError
 void printInstructionError
 (const char *operation, InstructionErrorFlag flag, uint32_t lineNumber);
 
+void printDirectiveError(DirectiveErrorFlag flag, uint32_t lineNumber);
+
 void printDirectiveDataError(DirectiveDataErrorFlag flag, uint32_t lineNumber);
 
 void printDirectiveStringError(DirectiveStrErrorFlag flag, uint32_t lineNumber);
+
+void printDirectiveEntryError
+(const char *expr, DirectiveEntryErrorFlag flag, uint32_t lineNumber);
+
+void printDirectiveExternError
+(const char *expr, DirectiveExtErrorFlag flag, uint32_t lineNumber);
 
 void printAddressingModeError(AddressModeErrorFlag flag, uint32_t lineNumber);
 

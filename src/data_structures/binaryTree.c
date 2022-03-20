@@ -167,15 +167,5 @@ static TreeNode *searchTreeNode_rec(TreeNode *root, char *key)
 
 	return searchTreeNode_rec(getRightChild(root), key);
 }
-
-static void printTree_rec(FILE *stream, TreeNode *root, voidOperationPtr printData)
-{
-	if (!root)
-		return;
-
-	printTree_rec(stream, getLeftChild(root), printData);
-	printTree_rec(stream, getRightChild(root), printData);
-	printTreeNode(stream, root, printData);
-}
 /* ----------------------------------------------------------------	*/
 

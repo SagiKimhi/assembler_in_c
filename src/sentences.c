@@ -110,7 +110,7 @@ int checkInstructionSentence(const char *operation, const char *sentence,
 		}
 
 		if (*token==OPERAND_SEPERATOR) {
-			printInstructionError(operation, INVALID_COMMA, lineNumber);
+			printCommaError(INVALID_COMMA, lineNumber);
 			/* TODO: print error, invalid comma, expected an operand
 			fprintf(stderr, "Error in Line %lu: expected an operand but encountered comma\n", 
 					lineNumber);*/
@@ -173,7 +173,7 @@ int checkDirectiveSentence(const char *sentence, SentenceType type,
 {
 	const char *nextTokenPtr;
 	char token[MAX_LINE_LEN+1];
-	int isOperand, numOfOperands, tempResult;
+	int isOperand, operandCount, tempResult;
 
 	if (!sentence || !dataCounter)
 		return 0;
@@ -181,17 +181,18 @@ int checkDirectiveSentence(const char *sentence, SentenceType type,
 	nextTokenPtr	 = sentence;
 	nextTokenPtr	+= getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
 	isOperand		 = 1;
-	numOfOperands	 = 0;
+	operandCount	 = 0;
 
 	if (!(*token)) {
-		/* TODO: print error, empty sentence - missing operands */
+		printDirectiveError(EMPTY_DIRECTIVE_SENTENCE, lineNumber);
+		/* TODO: print error, empty sentence - missing operands 
 			fprintf(stderr, "Error in Line %lu: missing operands in directive sentence\n", 
-					lineNumber);
+					lineNumber);*/
 		return 0;
 	}
 
 	while (*token) {
-		if (type!=DIRECTIVE_DATA_SENTENCE && numOfOperands)
+		if (type!=DIRECTIVE_DATA_SENTENCE && operandCount)
 			break;
 
 		if (isOperand) {
@@ -206,7 +207,7 @@ int checkDirectiveSentence(const char *sentence, SentenceType type,
 			if (!(tempResult=validateDirectiveOperand(token, type, lineNumber)))
 				return 0;
 
-			numOfOperands++;
+			operandCount++;
 			(*dataCounter)	+= (type==DIRECTIVE_DATA_SENTENCE || 
 								type==DIRECTIVE_STRING_SENTENCE) ? tempResult: 0;
 		}
@@ -221,13 +222,6 @@ int checkDirectiveSentence(const char *sentence, SentenceType type,
 
 		isOperand		=	!isOperand;
 		nextTokenPtr	+=	getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
-	}
-
-	if (isOperand) {
-		/* TODO: print error, expected operand. */
-		fprintf(stderr, "Error in Line %lu: expected an operand but encountered end of line\n", 
-				lineNumber);
-		return 0;
 	}
 
 	if (*token) {
@@ -255,6 +249,7 @@ static int validateInstructionOperand
 (char *operand, AddressingMode addressingMode, uint32_t lineNumber)
 {
 	int16_t temp = 0;
+	int flags = 0;
 
 	switch (addressingMode) {
 		case IMMEDIATE:
@@ -276,11 +271,11 @@ static int validateInstructionOperand
 			}
 
 		case DIRECT:
-			if (!isValidLabelTag(operand))
+			if (!(flags=isValidLabelTag(operand)))
 				return 1;
 
 			/* TODO: print error, invalid operand. */
-			printLabelError(operand, INVALID_LABEL_NAME, lineNumber);
+			printLabelError(operand, flags, lineNumber);
 			return 0;
 
 		case REGISTER_DIRECT:
@@ -301,6 +296,7 @@ static int validateDirectiveOperand
 (const char *operand, SentenceType type, uint32_t lineNumber)
 {
 	const char DATA_TEST_FORMAT[] = DATA_SCAN_FORMAT"%c";
+	int flags = 0;
 	char tempC = 0;
 	int16_t tempN = 0;
 
@@ -335,7 +331,10 @@ static int validateDirectiveOperand
 
 		case DIRECTIVE_ENTRY_SENTENCE:
 		case DIRECTIVE_EXTERN_SENTENCE:
-			return (!isValidLabelTag(operand)) ? 1: 0;
+			if (!(flags=isValidLabelTag(operand)))
+				return 1;
+
+			printLabelError(operand, flags, lineNumber);
 
 		default: 
 			return 0;

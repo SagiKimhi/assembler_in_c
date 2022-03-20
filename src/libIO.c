@@ -52,8 +52,10 @@ FILE *openFile(const char *fileName, const char *fileExtension, const char *mode
 
 	sprintf(newFileName, "%s%s", fileName, fileExtension);
 
-	if (!(fp=fopen(newFileName, mode)))
-		perror("Error: ");
+	if (!(fp=fopen(newFileName, mode))) {
+		printf("Error: unable to open/create file '%s'.\n", newFileName);
+		perror(NULL);
+	}
 
 	free(newFileName);
 	return fp;
@@ -83,6 +85,8 @@ int deleteFile(const char *fileName, const char *fileExtension)
 	sprintf(newFileName, "%s%s", fileName, fileExtension);
 
 	if (remove(newFileName)) {
+		printf("Error: Unable to delete file '%s'.\n", newFileName);
+		perror(NULL);
 		free(newFileName);
 		return -1;
 	}
