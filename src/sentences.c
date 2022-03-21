@@ -133,7 +133,7 @@ int checkInstructionSentence(const char *operation, const char *sentence,
 		nextTokenPtr			+= getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
 		(*instructionCounter)	+= getAdditionalMemoryWords(addressingMode);
 
-		if (*token!=OPERAND_SEPERATOR) {
+		if (isOriginOperand && *token!=OPERAND_SEPERATOR) {
 			printCommaError(MISSING_COMMA, lineNumber);
 			return 0;
 		}
