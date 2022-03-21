@@ -112,8 +112,6 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree,
 
 		if (!result) {
 			printGeneralError(inputLine, INVALID_LINE_LENGTH, lineNumber);
-			/* TODO: add error for line being longer than MAX_LINE_LEN 
-			fprintf(stderr, "Error in line %lu: line too long.\n", lineNumber);*/
 			continue;
 		}
 
@@ -126,22 +124,17 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree,
 		if (isLineLabelDefinition(token)) {
 			if ((result=isValidLabelDefinition(token, labelName))) {
 				printLabelError(token, result, lineNumber);
-				/* TODO: invalid label def, print errors 
-				fprintf(stderr, "Error in line %lu: invalid label definition '%s'.\n", 
-						lineNumber, token);*/
 				validFlag = 0;
 			}
+
 			else {
 				TreeNode *temp = searchTreeNode(symbolTree, labelName);
 
 				if (temp!=NULL) {
 					printLabelError(labelName, LABEL_ALREADY_DEFINED, lineNumber);
-					/* TODO: Label exists, print error 
-					fprintf(stderr, "Error in line %lu: label '%s' is already defined:\n", 
-							lineNumber, labelName);
-					printTreeNode(stderr, temp, printLabel); */
 					validFlag = 0;
 				}
+
 				else
 					labelFlag = 1;
 			}
@@ -157,9 +150,6 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree,
 		switch (identifySentenceType(token)) {
 			case INVALID_SENTENCE:
 				printGeneralError(token, UNKNOWN_IDENTIFIER, lineNumber);
-				/* TODO: Print error - unknown identifier. 
-				fprintf(stderr, "Error in line %lu: unknown identifier '%s'.\n", 
-						lineNumber, token);*/
 				validFlag = 0;
 				break;
 
@@ -205,7 +195,6 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree,
 			case DIRECTIVE_EXTERN_SENTENCE:
 				if (!checkDirectiveSentence(nextTokenPtr, DIRECTIVE_EXTERN_SENTENCE,
 											dataCounter, lineNumber				)) {
-					/* TODO: print error, invalid extern sentence */
 					validFlag = 0;
 					break;
 				}
@@ -215,10 +204,6 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree,
 
 				if (label!=NULL && getLabelType(label)!=EXTERN) {
 					printDirectiveExternError(labelName, PREDEFINED_NON_EXTERN_LABEL, lineNumber);
-					/* TODO: print error - label already defined in this file 
-					fprintf(stderr, "Error in line %lu: label '%s' is already defined "
-							"in this file and therefore cannot be defined as extern.\n", 
-							lineNumber, token);*/
 					validFlag = 0;
 				}
 				else
@@ -228,7 +213,6 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree,
 
 			case EMPTY_SENTENCE:
 				if (labelFlag)
-					/* TODO: print warning, empty label definition. */
 					__WARNING__EMPTY_LABEL_DEF(labelName, lineNumber);
 
 				break;
@@ -243,7 +227,6 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree,
 	}
 
 	if ((*dataCounter + *instructionCounter) > MEMSIZE) {
-		/* TODO: print error, max memory exceeded. */
 		printGeneralError(NULL, MEMORY_OVERFLOW, lineNumber);
 		validFlag = 0;
 	
@@ -330,7 +313,7 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 						case IMMEDIATE:
 							if (validFlag) {
 								scanImmediateExpression(token, &temp);
-								additionalWords[i++] |= ABSOLUTE_CODE | temp;
+								additionalWords[i++] = ABSOLUTE_CODE | (uint16_t)temp;
 							}
 
 							break;
@@ -349,8 +332,6 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 								printInstructionError
 								(Operations[operationIndex].opName, 
 								OPERAND_IS_UNDEFINED_LABEL, lineNumber);
-								/* TODO: print error, label does not exist.
-								fprintf(stderr, "label %s does not exist\n", token);*/
 								validFlag = 0;
 							}
 
@@ -418,7 +399,7 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 
 					if (sentenceType==DIRECTIVE_DATA_SENTENCE) {
 						sscanf(token, DATA_SCAN_FORMAT, &temp);
-						memoryWordCode |= ABSOLUTE_CODE | temp;
+						memoryWordCode |= ABSOLUTE_CODE | (uint16_t)temp;
 						encodeToFile
 						(tempDataFilePtr, dataAddress++, memoryWordCode);
 					}
@@ -444,15 +425,11 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 
 				if (!node) {
 					printDirectiveEntryError(token, UNDEFINED_LABEL, lineNumber);
-					/* TODO: print error, label is undefined, 
-					 * cannot define an undefined label as entry. */
 					validFlag = 0;
 				} 
 				else if (getLabelType(label) == EXTERN) {
 					printDirectiveEntryError
 					(token, LABEL_ALREADY_DECLARED_EXTERN, lineNumber);
-					/* TODO: print error, a label may not be 
-					 * defined as both extern and entry.*/
 					validFlag = 0;
 				}
 				else if (!entryFilePtr && !(entryFilePtr=createEntryFile(fileName)))

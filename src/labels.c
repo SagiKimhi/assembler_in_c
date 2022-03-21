@@ -116,7 +116,7 @@ int isValidLabelDefinition(const char *expr, char dest[MAX_LABEL_LEN+1])
 	int flags = 0, i = 0;
 
 	if (!expr || !(*expr))
-		return FAILURE;
+		return EMPTY_LABEL_TAG;
 
 	while (*expr && *expr!=LABEL_DEFINITION_SUFFIX) {
 		if (i<MAX_LABEL_LEN)
@@ -146,7 +146,7 @@ int isValidLabelTag(const char *expr)
 	const char *ptr = expr;
 
 	if (!expr || !(*expr))
-		return FAILURE;
+		return EMPTY_LABEL_TAG;
 
 	if (!isalpha(*ptr))
 		flags |= INVALID_LABEL_SYNTAX;

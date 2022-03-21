@@ -111,9 +111,6 @@ int checkInstructionSentence(const char *operation, const char *sentence,
 
 		if (*token==OPERAND_SEPERATOR) {
 			printCommaError(INVALID_COMMA, lineNumber);
-			/* TODO: print error, invalid comma, expected an operand
-			fprintf(stderr, "Error in Line %lu: expected an operand but encountered comma\n", 
-					lineNumber);*/
 			return 0;
 		}
 
@@ -127,9 +124,6 @@ int checkInstructionSentence(const char *operation, const char *sentence,
 				printInstructionError(operation, ILLEGAL_ORIGIN_ADDRESSING_MODE, lineNumber);
 			else
 				printInstructionError(operation, ILLEGAL_DEST_ADDRESSING_MODE, lineNumber);
-			/* TODO: print error, invalid operand. 
-			fprintf(stderr, "Error in Line %lu: invalid operand '%s' for operation %s\n", 
-					lineNumber, token, Operations[operationIndex].opName);*/
 			return 0;
 		}
 
@@ -139,11 +133,8 @@ int checkInstructionSentence(const char *operation, const char *sentence,
 		nextTokenPtr			+= getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
 		(*instructionCounter)	+= getAdditionalMemoryWords(addressingMode);
 
-		if (isOriginOperand && *token!=OPERAND_SEPERATOR) {
+		if (*token!=OPERAND_SEPERATOR) {
 			printCommaError(MISSING_COMMA, lineNumber);
-			/* TODO: print error, missing seperator. 
-			fprintf(stderr, "Error in Line %lu: Missing comma\n", 
-					lineNumber);*/
 			return 0;
 		}
 
@@ -153,9 +144,6 @@ int checkInstructionSentence(const char *operation, const char *sentence,
 
 	if (*token) {
 		printGeneralError(token, EXTRANEOUS_TEXT, lineNumber);
-		/* TODO: print error, extraneous text. 
-		fprintf(stderr, "Error in Line %lu: extraneous text.\n", 
-				lineNumber);*/
 		return 0;
 	}
 
@@ -185,9 +173,6 @@ int checkDirectiveSentence(const char *sentence, SentenceType type,
 
 	if (!(*token)) {
 		printDirectiveError(EMPTY_DIRECTIVE_SENTENCE, lineNumber);
-		/* TODO: print error, empty sentence - missing operands 
-			fprintf(stderr, "Error in Line %lu: missing operands in directive sentence\n", 
-					lineNumber);*/
 		return 0;
 	}
 
@@ -198,9 +183,6 @@ int checkDirectiveSentence(const char *sentence, SentenceType type,
 		if (isOperand) {
 			if (*token==OPERAND_SEPERATOR) {
 				printCommaError(INVALID_COMMA, lineNumber);
-				/* TODO: print error, invalid seperator, expected operand. 
-				fprintf(stderr, "Error in Line %lu: expected an operand but encountered comma\n", 
-						lineNumber);*/
 				return 0;
 			}
 
@@ -214,9 +196,6 @@ int checkDirectiveSentence(const char *sentence, SentenceType type,
 
 		else if (*token!=OPERAND_SEPERATOR) {
 			printCommaError(MISSING_COMMA, lineNumber);
-			/* TODO: print error, expected seperator. 
-			fprintf(stderr, "Error in Line %lu: Missing comma\n", 
-					lineNumber);*/
 			return 0;
 		}
 
@@ -226,9 +205,6 @@ int checkDirectiveSentence(const char *sentence, SentenceType type,
 
 	if (*token) {
 		printGeneralError(token, EXTRANEOUS_TEXT, lineNumber);
-		/* TODO: print error, extraneous text. 
-		fprintf(stderr, "Error in Line %lu: extraneous text.\n", 
-				lineNumber);*/
 		return 0;
 	}
 

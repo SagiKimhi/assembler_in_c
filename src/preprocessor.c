@@ -71,7 +71,7 @@ static void fscanAndExpandMacros(FILE *readPtr, FILE *writePtr, Tree *macroTree)
 		tempFilePosition = ftell(readPtr);
 
 		/* Error checking */
-		if (getWord(tempWord, MAX_LINE_LEN+1, readPtr)<=0) 
+		if (getWord(tempWord, MAX_LINE_LEN+1, readPtr)==EOF) 
 			return;
 
 		/* Check for begining of macro definition */

@@ -78,6 +78,10 @@ void printLabelError
 		case MISSING_LABEL_DEFINITION_SUFFIX:
 			printf("label definitions must end with the appropriate suffix ':'\n");
 			break;
+
+		case EMPTY_LABEL_TAG:
+			printf("encountered an empty label tag/name.\n");
+			break;
 	}
 }
 
