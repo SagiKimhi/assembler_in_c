@@ -6,7 +6,7 @@ foreach file ( "${testDir}"/*.as )
     echo -n "Do you wish to proceed to test ${file:r} (y/n/stop)? "
     set usrAns = $<
     if ( "${usrAns}" == "" || "${usrAns}" == "y" || "${usrAns}" == "Y" ) then
-        echo "\n`time ./asmake ${file:r}`\n"
+        echo "\n`time ./assembler ${file:r}`\n"
     else if ( "${usrAns}" == "stop" ) then
         echo "\nAborting...\n"
         exit
