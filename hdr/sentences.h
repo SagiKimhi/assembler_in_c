@@ -62,7 +62,7 @@ SentenceType identifySentenceType(const char *token);
  * currently being checked - this will be used for error printing in case of an error.
  * @return Returns 1 if the sentence is found to be valid, or 0 otherwise. */
 int checkInstructionSentence(const char *operation, const char *sentence, 
-							uint16_t *instructionCounter, uint32_t lineNumber);
+							uint16_t *IC, uint32_t lineNumber);
 
 /* checkDirectiveSentence: Validates an entire directive sentence and progresses
  * the data counter in accordance to the SentenceType and to the memory words 
@@ -82,6 +82,6 @@ int checkInstructionSentence(const char *operation, const char *sentence,
  * currently being checked - this will be used for error printing.
  * @return Returns 1 if the sentence is found to be valid, or 0 otherwise. */
 int checkDirectiveSentence(const char *sentence, SentenceType sentenceType,
-							uint16_t *dataCounter, uint32_t lineNumber);
+							uint16_t *DC, uint32_t lineNumber);
 
 #endif

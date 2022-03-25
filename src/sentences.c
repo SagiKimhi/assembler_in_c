@@ -79,7 +79,7 @@ SentenceType identifySentenceType(const char *token)
  * and describing the error which occured. Upon error 0 is returned.
  * Otherwise, if the sentence is valid, 1 is returned. */
 int checkInstructionSentence(const char *operation, const char *sentence, 
-							uint16_t *instructionCounter, uint32_t lineNumber)
+							uint16_t *IC, uint32_t lineNumber)
 {
 	const char *nextTokenPtr;
 	char token[MAX_LINE_LEN+1];
@@ -87,7 +87,7 @@ int checkInstructionSentence(const char *operation, const char *sentence,
 	int operationIndex, addressingMode, operand;
 
 	/* Error checking */
-	if (!operation || !sentence || !instructionCounter)
+	if (!operation || !sentence || !IC)
 		return 0;
 
 	operationIndex	= searchOperation(operation);
@@ -100,7 +100,7 @@ int checkInstructionSentence(const char *operation, const char *sentence,
 	nextTokenPtr			 = sentence;
 	isOriginOperand			 = (Operations[operationIndex].numOfOperands > 1);
 	nextTokenPtr			+= getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
-	(*instructionCounter)	+= getOperationMemoryWords(operationIndex);
+	(*IC)	+= getOperationMemoryWords(operationIndex);
 
 	/* Begin scanning the operands and seperators */
 	for (operand=1; operand<=Operations[operationIndex].numOfOperands; operand++) {
@@ -131,7 +131,7 @@ int checkInstructionSentence(const char *operation, const char *sentence,
 			return 0;
 
 		nextTokenPtr			+= getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
-		(*instructionCounter)	+= getAdditionalMemoryWords(addressingMode);
+		(*IC)	+= getAdditionalMemoryWords(addressingMode);
 
 		if (isOriginOperand && *token!=OPERAND_SEPERATOR) {
 			printCommaError(MISSING_COMMA, lineNumber);
@@ -157,13 +157,13 @@ int checkInstructionSentence(const char *operation, const char *sentence,
  * the line number of the error based on lineNumber and describing the error.
  * Upon error 0 is returned. Otherwise, if the sentence is valid, 1 is returned. */
 int checkDirectiveSentence(const char *sentence, SentenceType type,
-							uint16_t *dataCounter, uint32_t lineNumber)
+							uint16_t *DC, uint32_t lineNumber)
 {
 	const char *nextTokenPtr;
 	char token[MAX_LINE_LEN+1];
 	int isOperand, operandCount, tempResult;
 
-	if (!sentence || !dataCounter)
+	if (!sentence || !DC)
 		return 0;
 
 	nextTokenPtr	 = sentence;
@@ -190,7 +190,7 @@ int checkDirectiveSentence(const char *sentence, SentenceType type,
 				return 0;
 
 			operandCount++;
-			(*dataCounter)	+= (type==DIRECTIVE_DATA_SENTENCE || 
+			(*DC)	+= (type==DIRECTIVE_DATA_SENTENCE || 
 								type==DIRECTIVE_STRING_SENTENCE) ? tempResult: 0;
 		}
 
