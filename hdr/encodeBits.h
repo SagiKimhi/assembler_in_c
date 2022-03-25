@@ -1,6 +1,5 @@
 #ifndef _ENCODE_BITS_H
 #define _ENCODE_BITS_H
-#include <libraries.h>
 
 #define NONE				0x0
 #define BIT_0				0x1
@@ -27,14 +26,12 @@
 #define RELOCATABLE_CODE	BIT_17
 #define ABSOLUTE_CODE		BIT_18
 
-/* These should probably be defined as functions
- * instead of macros (Note to self) */
-#define encodeDestAddressMode(X) (X)		/* Bits [1:0] */
-#define encodeDestRegister(X) ((X)<<2)	/* Bits [5:2] */
-#define encodeOriginAddressMode(X) ((X)<<6)	/* Bits [7:6] */
-#define encodeOriginRegister(X) ((X)<<8)		/* Bits [11:8] */
-#define encodeFunct(X) ((X)<<12)			/* Bits [15:12] */
-#define encodeInstructionCode(X) ((X)<<16)	/* Bits [18:16] */
-#define enccodePSW(X) ((X) ? BIT_19: NONE)	/* Bits [19:19] */
+#define encodeDestAddressMode(X)	(X)						/* Bits [1:0] */
+#define encodeDestRegister(X)		((X)<<2)				/* Bits [5:2] */
+#define encodeOriginAddressMode(X)	((X)<<6)				/* Bits [7:6] */
+#define encodeOriginRegister(X)		((X)<<8)				/* Bits [11:8] */
+#define encodeFunct(X)				((X)<<12)				/* Bits [15:12] */
+#define encodeInstructionCode(X)	((X)<<16)				/* Bits [18:16] */
+#define enccodePSW(X)				((X) ? BIT_19: NONE)	/* Bits [19:19] */
 
 #endif

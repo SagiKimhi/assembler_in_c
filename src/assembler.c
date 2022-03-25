@@ -1,3 +1,4 @@
+#include "errors.h"
 #include "sentences.h"
 #include <assembler.h>
 
@@ -29,11 +30,10 @@ static FILE *createObjectFile
 static void updateSymbolTreeAddresses
 (TreeNode *symbolTreeRoot, uint16_t instructionCounter);
 
-static int startFirstPass(	FILE *inputStream, Tree *symbolTree, 
-							uint16_t *IC, uint16_t *DC);
+static int startFirstPass(FILE *inputStream, Tree *symbolTree, uint16_t *IC, uint16_t *DC);
 
-static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbolTree, 
-							uint16_t IC, uint16_t DC);
+static int startSecondPass(FILE *inputStream, const char *fileName, 
+							Tree *symbolTree, uint16_t IC, uint16_t DC);
 
 /* ----------------------------------------------------------------	*
  *							Public Functions						*
@@ -71,7 +71,7 @@ int startAssembler(const char *fileName)
 	IC = FIRST_MEMORY_ADDRESS;
 	
 	/* Initiate first pass */
-	validFlag = startFirstPass (inputStream, symbolTree, &IC, &DC);
+	validFlag = startFirstPass(inputStream, symbolTree, &IC, &DC);
 
 	/* if no errors popped up - rewind file, update counter and 
 	 * symbol tree and initiate the second pass. */
@@ -89,8 +89,7 @@ int startAssembler(const char *fileName)
 	return ((validFlag) ? EXIT_SUCCESS: EXIT_FAILURE);
 }
 
-static int startFirstPass
-(FILE *inputStream, Tree *symbolTree, uint16_t *IC, uint16_t *DC)
+static int startFirstPass(FILE *inputStream, Tree *symbolTree, uint16_t *IC, uint16_t *DC)
 {
 	/* Variable Definitions */
 	Label *label = NULL;
@@ -173,8 +172,7 @@ static int startFirstPass
 
 			case DIRECTIVE_STRING_SENTENCE:
 				if (labelFlag) 
-					addTreeNode(symbolTree, labelName, 
-								newLabel(*DC, STRING));
+					addTreeNode(symbolTree, labelName, newLabel(*DC, STRING));
 
 				if (!checkDirectiveSentence(nextTokenPtr, 
 											DIRECTIVE_STRING_SENTENCE, DC, lineNumber))
@@ -211,16 +209,16 @@ static int startFirstPass
 				break;
 
 			case EMPTY_SENTENCE:
-				if (labelFlag)
-					__WARNING__EMPTY_LABEL_DEF(labelName, lineNumber);
+				if (labelFlag) {
+					printLabelError(labelName, EMPTY_LABEL_TAG, lineNumber);
+					validFlag = 0;
+				}
 
 				break;
 
 			case COMMENT_SENTENCE:
-				fprintf(stderr, "Error in line %lu: comments may only start in the "
-						"begining of line.\n", lineNumber);
-					validFlag = 0;
-
+				printGeneralError(token, UNKNOWN_IDENTIFIER, lineNumber);
+				validFlag = 0;
 				break;
 		}
 	}
@@ -228,14 +226,13 @@ static int startFirstPass
 	if ((*DC + *IC) > MEMSIZE) {
 		printGeneralError(NULL, MEMORY_OVERFLOW, lineNumber);
 		validFlag = 0;
-	
 	}
 
 	return validFlag;
 }
 
-static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbolTree, 
-							uint16_t IC, uint16_t DC)
+static int startSecondPass(FILE *inputStream, const char *fileName, 
+							Tree *symbolTree, uint16_t IC, uint16_t DC)
 {
 	Label *label;
 	TreeNode *node;
@@ -261,7 +258,7 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 	instructionAddress = FIRST_MEMORY_ADDRESS;
 	objectFilePtr = entryFilePtr = externFilePtr = tempDataFilePtr = NULL;
 
-	if (DC && !(tempDataFilePtr=tmpfile())) {
+	if ((DC-IC) && !(tempDataFilePtr=tmpfile())) {
 		printf("Internal error in second pass: Unable to create data file.\n");
 		perror(NULL);
 		return 0;
@@ -280,9 +277,6 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 
 		if (isLineLabelDefinition(token))
 			token = strtok(NULL, OPERAND_SEPERATORS);
-
-		if (!token)
-			continue;
 
 		switch ((sentenceType = identifySentenceType(token))) {
 			/* Encode an instruction sentence: */
@@ -329,9 +323,8 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 							label = getTreeNodeData(node);
 
 							if (!label) {
-								printInstructionError
-								(Operations[operationIndex].opName, 
-								OPERAND_IS_UNDEFINED_LABEL, lineNumber);
+								printInstructionError(Operations[operationIndex].opName, 
+													OPERAND_IS_UNDEFINED_LABEL, lineNumber);
 								validFlag = 0;
 							}
 
@@ -356,8 +349,7 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 									if (validFlag) {
 										additionalWords[i++] = EXTERNAL_CODE;
 										additionalWords[i++] = EXTERNAL_CODE;
-										printExtern(externFilePtr, node, 
-													instructionAddress+i);
+										printExtern(externFilePtr, node, instructionAddress+i);
 									}
 									
 									break;
@@ -381,13 +373,13 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 				}
 
 				if (validFlag) {
-					for (j=0; j<getOperationMemoryWords(operationIndex); )
+					for (j=0; j<getOperationMemoryWords(operationIndex); j++)
 						encodeToFile
-						(objectFilePtr, instructionAddress++, operationWords[j++]);
+						(objectFilePtr, instructionAddress++, operationWords[j]);
 
-					for (j=0; j<i; )
+					for (j=0; j<i; j++)
 						encodeToFile
-						(objectFilePtr, instructionAddress++, additionalWords[j++]);
+						(objectFilePtr, instructionAddress++, additionalWords[j]);
 				}
 
 				break;
@@ -416,7 +408,7 @@ static int startSecondPass(FILE *inputStream, const char *fileName, Tree *symbol
 				break;
 
 			case DIRECTIVE_ENTRY_SENTENCE:
-				token = strtok(NULL, OPERAND_SEPERATORS);
+				token = strtok(NULL, OPERAND_SEPERATORS); /* get entrie's label name */
 				node = searchTreeNode(symbolTree, token);
 				label = getTreeNodeData(node);
 
