@@ -1,5 +1,6 @@
 #ifndef _ENCODE_BITS_H
 #define _ENCODE_BITS_H
+#include <libraries.h>
 
 #define NONE				0x0
 #define BIT_0				0x1
@@ -33,5 +34,7 @@
 #define encodeFunct(X)				((X)<<12)				/* Bits [15:12] */
 #define encodeInstructionCode(X)	((X)<<16)				/* Bits [18:16] */
 #define enccodePSW(X)				((X) ? BIT_19: NONE)	/* Bits [19:19] */
+
+void encodeToFile(FILE *stream, uint32_t address, int32_t code);
 
 #endif

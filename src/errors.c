@@ -109,8 +109,13 @@ void printInstructionError
 					"|%s|.\n", operation);
 			break;
 
-		case OPERAND_IS_UNDEFINED_LABEL:
-			printf("undefined label used as operand for operation |%s|.\n", operation);
+		case ORIGIN_OPERAND_IS_UNDEFINED_LABEL:
+			printf(	"undefined label used as origin operand "
+					"for operation |%s|.\n", operation);
+			break;
+		case DEST_OPERAND_IS_UNDEFINED_LABEL:
+			printf(	"undefined label used as destination operand "
+					"for operation |%s|.\n", operation);
 			break;
 	}
 }

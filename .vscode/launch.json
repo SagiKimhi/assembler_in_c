@@ -5,12 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(gdb) Launch",
             "type": "cppdbg",
+            "name": "(gdb) Launch assembler",
             "request": "launch",
-            "program": "${fileDirname}/../asmake",
+            "program": "${fileDirname}/../assembler",
             "args": ["${fileDirname}/../tests/test"],
-            "stopAtEntry": true,
+            "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
             "externalConsole": false,

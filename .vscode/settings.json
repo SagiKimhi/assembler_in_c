@@ -15,6 +15,7 @@
         "cstdlib": "cpp",
         "cwchar": "cpp",
         "cwctype": "cpp",
-        "libraries.h": "c"
+        "libraries.h": "c",
+        "assembler.h": "c"
     }
 }
