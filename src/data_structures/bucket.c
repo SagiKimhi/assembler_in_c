@@ -93,19 +93,6 @@ void *getBucketData(Bucket *bucket)
 
 /* ----------------------------------------------------------------	*/
 
-void printBucket(FILE *stream, Bucket *bucket, voidOperationPtr printData)
-{
-	if (!bucket)
-		return;
-
-	fprintf(stream, "Key: %-*s\t", 32, getBucketKey(bucket));
-
-	if (printData!=NULL)
-		printData(stream, getBucketData(bucket));
-	else
-		fputc('\n', stream);
-}
-
 /* ----------------------------------------------------------------	*
  *							Static Functions						*
  * ----------------------------------------------------------------	*/

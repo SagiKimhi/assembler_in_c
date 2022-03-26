@@ -1,6 +1,7 @@
 #ifndef _ERRORS_H
 #define _ERRORS_H
 #include <libraries.h>
+#include <addressingModes.h>
 
 #ifndef FAILURE
 #define FAILURE -1

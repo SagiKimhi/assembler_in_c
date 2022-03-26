@@ -1,0 +1,23 @@
+[31merror:[0m name length is not valid -->
+[31merror:[0m name must start with alphabet letter -->
+[31merror:[0m name may conatin only ascii letters and digits -->
+[31merror:[0m label name is invalid at: [33m2[0m
+[31merror:[0m invalid num of parameters -->
+[31merror:[0m invalid function parameters at: [33m4[0m
+[31merror:[0m invalid num of parameters, not seperated with ',' -->
+[31merror:[0m invalid function parameters at: [33m12[0m
+[31merror:[0m invalid index -->
+[31merror:[0m invalid index -->
+[31merror:[0m invalid function parameters at: [33m15[0m
+[31merror:[0m label is defined twice at: [33m17[0m
+[31merror:[0m trying to define symbol with both .code and .data attributes -->
+	at: [33m17[0m
+[31merror:[0m name length is not valid -->
+[31merror:[0m name must start with alphabet letter -->
+[31merror:[0m label name is invalid at: [33m18[0m
+[31merror:[0m invalid line - function is missing at: [33m18[0m
+[31merror:[0m inavlid line length - behaviour is undefined at: [33m23[0m
+[31merror:[0m label is used but not defined! at: [33m4[0m
+[33mwarning:[0m number out of size range, behaviour undefined at: [31m23[0m
+[1min file: full_tests/err_file.am[0m
+

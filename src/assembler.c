@@ -12,10 +12,17 @@ enum FileIndices {
 	ENTRY_FILE,
 	EXTERN_FILE
 };
+/* ----------------------------------------------------------------	*/
 
 /* ----------------------------------------------------------------	*
  *						Static Function Prototypes					*
  * ----------------------------------------------------------------	*/
+static void encodeDirectiveDataSentence(FILE *dataFilePtr, char *sentence, uint16_t *dataAddress);
+
+static void encodeDirectiveStringSentence(FILE *dataFilePtr, const char *string, uint16_t *dataAddress);
+
+static int encodeEntrySentence(char *entry, Tree *symbolTree, uint32_t lineNumber);
+
 static int encodeInstruction(const char *fileName, char *sentence, Tree *symbolTree,
 								uint16_t *instructionAddress, uint32_t lineNumber);
 
@@ -48,12 +55,13 @@ static int	startFirstPass(FILE *inputStream, Tree *symbolTree,
 
 static int	startSecondPass(FILE *inputStream, const char *fileName, 
 							Tree *symbolTree, uint16_t IC, uint16_t DC);
-
+/* ----------------------------------------------------------------	*/
 
 /* ----------------------------------------------------------------	*
- *							Static Global Variables					*
+ *						Static Global Variables						*
  * ----------------------------------------------------------------	*/
 static FILE *outputFiles[NUM_OF_OUTPUT_FILES] = {NULL, NULL, NULL};
+/* ----------------------------------------------------------------	*/
 
 /* ----------------------------------------------------------------	*
  *							Public Functions						*
@@ -87,17 +95,15 @@ int startAssembler(const char *fileName)
 	}
 
 	/* Instantiate data and instruction counters */
-	DC = 0;
-	IC = FIRST_MEMORY_ADDRESS;
-	
-	/* Initiate first pass */
-	validFlag = startFirstPass(inputStream, symbolTree, &IC, &DC);
+	DC			= 0;
+	IC			= FIRST_MEMORY_ADDRESS;
+	validFlag	= startFirstPass(inputStream, symbolTree, &IC, &DC);
 
 	/* if no errors popped up - rewind file, update counter and 
 	 * symbol tree and initiate the second pass. */
 	if (validFlag) {
-		rewind(inputStream);
 		DC += IC;
+		rewind(inputStream);
 		updateSymbolTreeAddresses(getRoot(symbolTree), IC);
 		validFlag = startSecondPass(inputStream, fileName, symbolTree, IC, DC);
 	}
@@ -109,7 +115,11 @@ int startAssembler(const char *fileName)
 
 	return (validFlag ? EXIT_SUCCESS: EXIT_FAILURE);
 }
+/* ----------------------------------------------------------------	*/
 
+/* ----------------------------------------------------------------	*
+ *							Static Functions						*
+ * ----------------------------------------------------------------	*/
 static int startFirstPass(FILE *inputStream, Tree *symbolTree, uint16_t *IC, uint16_t *DC)
 {
 	/* Variable Definitions */
@@ -254,27 +264,20 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree, uint16_t *IC, uin
 static int startSecondPass(FILE *inputStream, const char *fileName, 
 							Tree *symbolTree, uint16_t IC, uint16_t DC)
 {
-	Label *label;
-	TreeNode *node;
-	SentenceType sentenceType;
-	char inputLine[MAX_LINE_LEN+1], token[MAX_LINE_LEN+1];
-	char *tokPtr, *ptr;
-
 	int16_t temp;
 	uint32_t lineNumber;
-	register int32_t memoryWordCode;
-	uint16_t instructionAddress, dataAddress;
-	int validFlag, temp2, i;
 	FILE *tempDataFilePtr;
+	int validFlag, result;
+	SentenceType sentenceType;
+	uint16_t instructionAddress, dataAddress;
+	char inputLine[MAX_LINE_LEN+1], token[MAX_LINE_LEN+1], *ptr;
+
 
 	/* Variable Instantiations */
-	node = NULL;
-	label = NULL;
 	validFlag = 1;
-	lineNumber = temp = 0;
 	dataAddress = IC;
+	lineNumber = temp = 0;
 	instructionAddress = FIRST_MEMORY_ADDRESS;
-	tempDataFilePtr = NULL;
 
 	if ((DC-IC) && !(tempDataFilePtr=tmpfile())) {
 		printf("Internal error in second pass: Unable to create data file.\n");
@@ -287,213 +290,70 @@ static int startSecondPass(FILE *inputStream, const char *fileName,
 
 	while (getLine(inputLine, MAX_LINE_LEN+1, inputStream)!=EOF) {
 		lineNumber++;
-		memoryWordCode = 0;
 
 		if (isComment(inputLine[0]))
 			continue;
 
 		ptr = inputLine;
-		temp2 = getToken(token, MAX_LINE_LEN+1, inputLine);
+		result = getToken(token, MAX_LINE_LEN+1, inputLine);
 
 		if (isLineLabelDefinition(token)) {
-			getToken(token, MAX_LINE_LEN+1, ptr);
-			ptr+=temp2;
+			ptr		+= result;
+			result	 = getToken(token, MAX_LINE_LEN+1, ptr);
 		}
 
-
-
-		sentenceType=identifySentenceType(token);
-
-		if (sentenceType != INSTRUCTION_SENTENCE)
-			tokPtr = strtok(ptr, OPERAND_SEPERATORS);
-		
-		switch (sentenceType) {
+		switch (sentenceType=identifySentenceType(token)) {
 			case INSTRUCTION_SENTENCE:
-				/* Encode an instruction sentence: */
 				if(!encodeInstruction(fileName, ptr, symbolTree, 
 										&instructionAddress, lineNumber))
 					validFlag = 0;
 
 				break;
-				/*
-				memset(operationWords, 0, sizeof(int32_t)*MAX_OPERATION_WORDS);
-				memset(additionalWords, 0, sizeof(int32_t)*MAX_ADDITIONAL_WORDS);
-				operationIndex = searchOperation(token);
-				operationWords[0] =	ABSOLUTE_CODE | 
-									Operations[operationIndex].opCode;
-				token = strtok(NULL, OPERAND_SEPERATORS);
-
-				if (getOperationMemoryWords(operationIndex)>1) {
-					operationWords[1] =	ABSOLUTE_CODE | 
-										Operations[operationIndex].functCode;
-				}
-
-				isOriginOperand = (Operations[operationIndex].numOfOperands > 1);
-
-				for (i=0; token!=NULL; token=strtok(NULL, OPERAND_SEPERATORS)) {
-					addressingMode = getAddressingMode(token);
-					operationWords[1] |=	(isOriginOperand) ? 
-											encodeOriginAddressMode(addressingMode):
-											encodeDestAddressMode(addressingMode);
-
-					switch (addressingMode) {
-						TreeNode *node;
-
-						case IMMEDIATE:
-							if (validFlag) {
-								scanImmediateExpression(token, &temp);
-								additionalWords[i++] = ABSOLUTE_CODE | (uint16_t)temp;
-							}
-
-							break;
-
-						case INDEX:
-							scanIndexExpression(token, &temp);
-							operationWords[1] |=	(isOriginOperand) ? 
-													encodeOriginRegister(temp): 
-													encodeDestRegister(temp);
-
-						case DIRECT:
-							node = searchTreeNode(symbolTree, token);
-							label = getTreeNodeData(node);
-
-							if (!label) {
-								printInstructionError(Operations[operationIndex].opName, 
-													OPERAND_IS_UNDEFINED_LABEL, lineNumber);
-								validFlag = 0;
-							}
-
-							if (!validFlag)
-								break;
-							
-							switch (getLabelType(label)) {
-								case DATA:
-								case STRING:
-								case CODE:
-									additionalWords[i++] |= RELOCATABLE_CODE | 
-															getBaseAddress(label);
-									additionalWords[i++] |= RELOCATABLE_CODE | 
-															getOffset(label);
-									break;
-
-								case EXTERN:
-									if (!externFilePtr	&& 
-										!(externFilePtr = createExternFile(fileName)))
-											validFlag = 0;
-
-									if (validFlag) {
-										additionalWords[i++] = EXTERNAL_CODE;
-										additionalWords[i++] = EXTERNAL_CODE;
-										printExtern(externFilePtr, node, instructionAddress+i);
-									}
-									
-									break;
-
-								default:
-									break;
-							}
-
-							break;
-
-						case REGISTER_DIRECT:
-							if (validFlag) {
-								scanRegister(token, &temp);
-								operationWords[1] |=	(isOriginOperand) ?
-														encodeOriginRegister(temp): 
-														encodeDestRegister(temp);
-							}
-							break;
-					}
-					isOriginOperand = 0;
-				}
-
-				if (validFlag) {
-					for (j=0; j<getOperationMemoryWords(operationIndex); j++)
-						encodeToFile
-						(objectFilePtr, instructionAddress++, operationWords[j]);
-
-					for (j=0; j<i; j++)
-						encodeToFile
-						(objectFilePtr, instructionAddress++, additionalWords[j]);
-				}
-
-				break;
-				*/
 
 			case DIRECTIVE_DATA_SENTENCE:
-				/*encodeDirectiveDataSentence(tempDataFilePtr, ptr, lineNumber);*/
-				while ((tokPtr=strtok(NULL,OPERAND_SEPERATORS))!=NULL) {
-					if (!validFlag)
-						continue;
-
-					sscanf(tokPtr, DATA_SCAN_FORMAT, &temp);
-					memoryWordCode |= ABSOLUTE_CODE | (uint16_t)temp;
-					encodeToFile(tempDataFilePtr, dataAddress++, memoryWordCode);
-				}
-
+				encodeDirectiveDataSentence(tempDataFilePtr, ptr, &dataAddress);
 				break;
 
 			case DIRECTIVE_STRING_SENTENCE:
-				/*encodeDirectiveStringSentence(tempDataFilePtr, ptr, lineNumber);*/
-				while ((tokPtr=strtok(NULL,OPERAND_SEPERATORS))!=NULL) {
-					for (i=1; tokPtr[i] && tokPtr[i+1]; i++) {
-						memoryWordCode = ABSOLUTE_CODE | tokPtr[i];
-						encodeToFile(tempDataFilePtr, dataAddress++, memoryWordCode);
-					}
-
-					memoryWordCode = ABSOLUTE_CODE;
-					encodeToFile(tempDataFilePtr, dataAddress++, memoryWordCode);
-				}
-
+				encodeDirectiveStringSentence(tempDataFilePtr, ptr+result, &dataAddress);
 				break;
 
 			case DIRECTIVE_ENTRY_SENTENCE:
-				/*encodeDirectiveEntrySentence(outputFiles[ENTRY_FILE], ptr, lineNumber);*/
-				tokPtr = strtok(NULL, OPERAND_SEPERATORS); /* get entrie's label name */
-				node = searchTreeNode(symbolTree, tokPtr);
-				label = getTreeNodeData(node);
-
-				if (!node) {
-					printDirectiveEntryError(tokPtr, UNDEFINED_LABEL, lineNumber);
+				if (!outputFiles[ENTRY_FILE] && !createEntryFile(fileName)) {
 					validFlag = 0;
-				} 
-
-				else if (getLabelType(label) == EXTERN) {
-					printDirectiveEntryError
-					(tokPtr, LABEL_ALREADY_DECLARED_EXTERN, lineNumber);
-					validFlag = 0;
+					break;
 				}
 
-				else if (!outputFiles[ENTRY_FILE] && !createEntryFile(fileName))
-						validFlag = 0;
+				if (!encodeEntrySentence(ptr+result, symbolTree, lineNumber))
+					validFlag = 0;
 
-				if (validFlag)
-					printEntry(node);
+				break;
 
 			default:
-				while (strtok(NULL, OPERAND_SEPERATORS)!=NULL)
-					;
-
 				break;
 		}
 	}
 
+	/* Remove all files if an error was found */
+	if (!validFlag) {
+		if (tempDataFilePtr!=NULL)
+			fclose(tempDataFilePtr);
+
+		deleteOutputFiles(fileName);
+		return validFlag;
+	}
+
 	/* If a data file exists copy its contents to the object file */
-	if (validFlag && tempDataFilePtr!=NULL) {
+	if (tempDataFilePtr!=NULL) {
 		int c;
 
 		rewind(tempDataFilePtr);
 
 		while ((c=fgetc(tempDataFilePtr))!=EOF)
 			fputc(c, outputFiles[OBJECT_FILE]);
-	}
 
-	if (tempDataFilePtr!=NULL)
 		fclose(tempDataFilePtr);
-
-	/* Remove all files if an error was found */
-	if (!validFlag)
-		deleteOutputFiles(fileName);
+	}
 
 	return validFlag;
 }
@@ -645,8 +505,7 @@ static int encodeInstruction(const char *fileName, char *sentence, Tree *symbolT
 	if (!validFlag)
 		return 0;
 
-	for (i=0; i<getOperationMemoryWords(operationIndex); i++)
-		encodeToFile(outputFiles[OBJECT_FILE], (*instructionAddress)++, operationWords[i]);
+	encodeToFile(outputFiles[OBJECT_FILE], (*instructionAddress)++, operationWords[1]);
 
 	for (i=0; i<offset; i++)
 		encodeToFile(outputFiles[OBJECT_FILE], (*instructionAddress)++, additionalWords[i]);
@@ -702,7 +561,7 @@ static int encodeOperand(	const char *fileName, char *token, Tree *symbolTree,
 
 				additionalWords[0] = EXTERNAL_CODE;
 				additionalWords[1] = EXTERNAL_CODE;
-				printExtern(node, instructionAddress+(*offset));
+				printExtern(node, instructionAddress+*offset+1);
 			}
 
 			else {
@@ -723,3 +582,63 @@ static int encodeOperand(	const char *fileName, char *token, Tree *symbolTree,
 	*offset += getAdditionalMemoryWords(addressingMode);
 	return 1;
 }
+static void encodeDirectiveDataSentence(FILE *dataFilePtr, char *sentence, uint16_t *dataAddress)
+{
+	char *token;
+	int16_t temp;
+	register int32_t encodedDataWord;
+	
+	/* Instantiations */
+	encodedDataWord = temp = 0;
+	token = strtok(sentence, OPERAND_SEPERATORS);
+
+	while ((token=strtok(NULL, OPERAND_SEPERATORS))!=NULL) {
+		sscanf(token, DATA_SCAN_FORMAT, &temp);
+		encodedDataWord |= ABSOLUTE_CODE | (uint16_t)temp;
+		encodeToFile(dataFilePtr, (*dataAddress)++, encodedDataWord);
+	}
+}
+
+static void encodeDirectiveStringSentence(FILE *dataFilePtr, const char *string, uint16_t *dataAddress)
+{
+	int i;
+	char token[MAX_LINE_LEN+1];
+	register int32_t encodedDataWord;
+
+
+	i = 1;
+	encodedDataWord = 0;
+	getToken(token, MAX_LINE_LEN+1, string);
+
+	while (token[i+1]) {
+		encodedDataWord = ABSOLUTE_CODE | token[i++];
+		encodeToFile(dataFilePtr, (*dataAddress)++, encodedDataWord);
+	}
+
+	encodedDataWord = ABSOLUTE_CODE;
+	encodeToFile(dataFilePtr, (*dataAddress)++, encodedDataWord);
+}
+
+static int encodeEntrySentence(char *entry, Tree *symbolTree, uint32_t lineNumber)
+{
+	Label *label;
+	TreeNode *node;
+	char token[MAX_LABEL_LEN+1];
+
+	getToken(token, MAX_LABEL_LEN+1, entry);
+	node	= searchTreeNode(symbolTree, token);
+	label	= getTreeNodeData(node);
+
+	if (!label) {
+		printDirectiveEntryError(token, UNDEFINED_LABEL, lineNumber);
+		return 0;
+	}
+
+	if (getLabelType(label)==EXTERN) {
+		printDirectiveEntryError(token, LABEL_ALREADY_DECLARED_EXTERN, lineNumber);
+		return 0;
+	}
+
+	printEntry(node);
+	return 1;
+}/* ----------------------------------------------------------------	*/

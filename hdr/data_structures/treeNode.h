@@ -86,6 +86,4 @@ TreeNode *getLeftChild(TreeNode *node);
  * is pointing to. NULL is returned upon failure or if the right child is NULL. */
 TreeNode *getRightChild(TreeNode *node);
 
-void printTreeNode(FILE *stream, TreeNode *node, voidOperationPtr printData);
-
 #endif

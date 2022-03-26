@@ -1,4 +1,3 @@
-#include "errors.h"
 #include <sentences.h>
 
 /* ----------------------------------------------------------------	*
@@ -83,8 +82,8 @@ int checkInstructionSentence(const char *operation, const char *sentence,
 {
 	const char *nextTokenPtr;
 	char token[MAX_LINE_LEN+1];
-	int isOriginOperand, isLegalOperand;
-	int operationIndex, addressingMode, operand;
+	int isOriginOperand, isLegalOperand, isOperand;
+	int operationIndex, addressingMode, operands;
 
 	/* Error checking */
 	if (!operation || !sentence || !IC)
@@ -97,49 +96,54 @@ int checkInstructionSentence(const char *operation, const char *sentence,
 	}
 	
 	/* variable instantiations */
-	nextTokenPtr			 = sentence;
-	isOriginOperand			 = (Operations[operationIndex].numOfOperands > 1);
-	nextTokenPtr			+= getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
-	(*IC)	+= getOperationMemoryWords(operationIndex);
+	isOperand		= 1;
+	nextTokenPtr	= sentence;
+	isOriginOperand	= (Operations[operationIndex].numOfOperands > 1);
+	(*IC)			+= getOperationMemoryWords(operationIndex);
+	nextTokenPtr	+= getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
 
 	/* Begin scanning the operands and seperators */
-	for (operand=1; operand<=Operations[operationIndex].numOfOperands; operand++) {
-		if (!(*token)) {
-			printInstructionError(operation, MISSING_OPERANDS, lineNumber);
-			return 0;
+	for (operands=0; operands<Operations[operationIndex].numOfOperands; isOperand=!isOperand) {
+
+		if (isOperand) {
+			if (!(*token)) {
+				printInstructionError(operation, MISSING_OPERANDS, lineNumber);
+				return 0;
+			}
+
+			if (*token==OPERAND_SEPERATOR) {
+				printCommaError(INVALID_COMMA, lineNumber);
+				return 0;
+			}
+
+			addressingMode	=	getAddressingMode(token);
+			isLegalOperand	=	(isOriginOperand) ? 
+				isLegalOriginAddressingMode(operationIndex, addressingMode):
+				isLegalDestAddressingMode(operationIndex, addressingMode);
+
+			if (!isLegalOperand) {
+				if (isOriginOperand)
+					printInstructionError(operation, ILLEGAL_ORIGIN_ADDRESSING_MODE, lineNumber);
+				else
+					printInstructionError(operation, ILLEGAL_DEST_ADDRESSING_MODE, lineNumber);
+
+				return 0;
+			}
+
+			if (!validateInstructionOperand(token, addressingMode, lineNumber))
+				return 0;
+
+			(*IC)			+= getAdditionalMemoryWords(addressingMode);
+			isOriginOperand  = 0;
+			operands++;
 		}
 
-		if (*token==OPERAND_SEPERATOR) {
-			printCommaError(INVALID_COMMA, lineNumber);
-			return 0;
-		}
-
-		addressingMode	=	getAddressingMode(token);
-		isLegalOperand	=	(isOriginOperand) ? 
-							isLegalOriginAddressingMode(operationIndex, addressingMode):
-							isLegalDestAddressingMode(operationIndex, addressingMode);
-
-		if (!isLegalOperand) {
-			if (isOriginOperand)
-				printInstructionError(operation, ILLEGAL_ORIGIN_ADDRESSING_MODE, lineNumber);
-			else
-				printInstructionError(operation, ILLEGAL_DEST_ADDRESSING_MODE, lineNumber);
-			return 0;
-		}
-
-		if (!validateInstructionOperand(token, addressingMode, lineNumber))
-			return 0;
-
-		nextTokenPtr			+= getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
-		(*IC)	+= getAdditionalMemoryWords(addressingMode);
-
-		if (isOriginOperand && *token!=OPERAND_SEPERATOR) {
+		else if (*token!=OPERAND_SEPERATOR) {
 			printCommaError(MISSING_COMMA, lineNumber);
 			return 0;
 		}
 
-		nextTokenPtr	+= getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
-		isOriginOperand  = 0;
+		nextTokenPtr += getToken(token, MAX_LINE_LEN+1, nextTokenPtr);
 	}
 
 	if (*token) {
@@ -191,7 +195,7 @@ int checkDirectiveSentence(const char *sentence, SentenceType type,
 
 			operandCount++;
 			(*DC)	+= (type==DIRECTIVE_DATA_SENTENCE || 
-								type==DIRECTIVE_STRING_SENTENCE) ? tempResult: 0;
+						type==DIRECTIVE_STRING_SENTENCE) ? tempResult: 0;
 		}
 
 		else if (*token!=OPERAND_SEPERATOR) {

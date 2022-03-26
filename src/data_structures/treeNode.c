@@ -118,11 +118,3 @@ TreeNode *getRightChild(TreeNode *node)
 	return node->rightChild;
 }
 /* ----------------------------------------------------------------	*/
-
-void printTreeNode(FILE *stream, TreeNode *node, voidOperationPtr printData)
-{
-	if (!node)
-		return;
-
-	printBucket(stream, node->bucket, printData);
-}

@@ -165,13 +165,3 @@ int isValidLabelTag(const char *expr)
 	return flags;
 }
 /* ----------------------------------------------------------------	*/
-
-void printLabel(FILE *stream, Label *label)
-{
-	if (!stream || !label)
-		return;
-
-	fprintf(stream, "Type: %-6s\tAddress: %-4hu\tBase address: %-4hu\tOffset:%-4hu\n", 
-			LabelTypeStr[getLabelType(label)], getAddress(label),
-			getBaseAddress(label), getOffset(label));
-}

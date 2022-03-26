@@ -133,6 +133,4 @@ int isValidLabelDefinition(const char *expr, char dest[MAX_LABEL_LEN+1]);
  * errors of type LabelErrorFlags upon error. */
 int isValidLabelTag(const char *expr);
 
-void printLabel(FILE *stream, Label *label);
-
 #endif

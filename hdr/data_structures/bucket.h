@@ -49,6 +49,4 @@ const char *getBucketKey(Bucket *bucket);
  * @return Returns a void pointer to the data which bucket's data points to. */
 void *getBucketData(Bucket *bucket);
 
-void printBucket(FILE *stream, Bucket *bucket, voidOperationPtr printData);
-
 #endif

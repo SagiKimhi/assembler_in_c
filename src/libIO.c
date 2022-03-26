@@ -142,16 +142,13 @@ int getLine(char *buffer, int size, FILE *stream)
 		return 0;
 	
 	
-	for (i=0, c=fgetc(stream); c!=EOF && i<(size-1); i++, c=fgetc(stream)) {
+	for (i=0, c=fgetc(stream); c!=EOF && c!='\n' && i<(size-1); i++, c=fgetc(stream)) {
 		/* This condition allows support of escape sequence characters by 
 		 * not changing inString state when reside inside a string definition */
 		if (c=='\"' && !inString)
 			inString = !inString;
 
 		buffer[i] = c;
-
-		if (c=='\n')
-			break;
 
 		if (inString)
 			continue;
@@ -163,6 +160,10 @@ int getLine(char *buffer, int size, FILE *stream)
 	/* If buffer is full and EOF was not reached */
 	if (i==(size-1) && c!=EOF) {
 		buffer[i]='\0';
+
+		while ((c=fgetc(stream))!=EOF && c!='\n')
+			;
+
 		return 0;
 	}
 
