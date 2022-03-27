@@ -62,13 +62,19 @@ int macroPreprocessor(const char *fileName)
  * macro calls found in readPtr by the actual contents of the defined macro. */
 static void fscanAndExpandMacros(FILE *readPtr, FILE *writePtr, Tree *macroTree)
 {
-	Macro *macro;
-	int tempFilePosition;
-	char tempWord[MAX_LINE_LEN+1];
+	Macro *macro = NULL;
+	int tempFilePosition, result = 0;
+	char tempWord[MAX_LINE_LEN+1] = {0};
 
-	while (skipSpaces(readPtr)!=EOF) {
+	while ((result=skipSpaces(readPtr))!=EOF) {
 		/* Get the current readPtr file position */
 		tempFilePosition = ftell(readPtr);
+
+		/* if line is empty, print a newline and continue */
+		if (result == '\n') {
+			putc('\n', writePtr);
+			continue;
+		}
 
 		/* Error checking */
 		if (getWord(tempWord, MAX_LINE_LEN+1, readPtr)==EOF) 
@@ -109,14 +115,11 @@ static void saveMacro(FILE *readPtr, Tree *macroTree)
 	/* Check if a macro with this name already exists in the tree */
 	macro = getTreeNodeData(searchTreeNode(macroTree, tempWord));
 
+	/* if such macro is already defined it will be overwritten by the new definition */
 	if (!macro) {
 		/* Create a new macro and save it into the data structure */
 		macro = newMacro();
 		addTreeNode(macroTree, tempWord, macro);
-	}
-	else {
-		/* TODO: print warning, this macro was already defined previously, 
-		 * overwriting previous macro definition with current definition. */
 	}
 
 	/* skip to the starting point of the macro's actual content

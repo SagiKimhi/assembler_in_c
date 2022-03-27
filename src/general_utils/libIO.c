@@ -85,8 +85,6 @@ int deleteFile(const char *fileName, const char *fileExtension)
 	sprintf(newFileName, "%s%s", fileName, fileExtension);
 
 	if (remove(newFileName)) {
-		printf("Error: Unable to delete file '%s'.\n", newFileName);
-		perror(NULL);
 		free(newFileName);
 		return -1;
 	}

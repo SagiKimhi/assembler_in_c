@@ -4,9 +4,9 @@
 /* ----------------------------------------------------------------	*
  *					Defines, Enums, Consts, etc.					*
  * ----------------------------------------------------------------	*/
+#define NUM_OF_OUTPUT_FILES 3
 #define isComma(TOKEN)		((TOKEN) == OPERAND_SEPERATOR)
 #define isComment(TOKEN)	((TOKEN) == COMMENT_PREFIX)
-#define NUM_OF_OUTPUT_FILES 3
 
 enum FileIndices {
 	OBJECT_FILE,
@@ -139,7 +139,7 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree, uint16_t *IC, uin
 		lineNumber++;
 		labelFlag = 0;
 
-		if (isComment(inputLine[0]) || !result)
+		if (!result || isComment(inputLine[0]))
 			continue;
 
 		if (result>MAX_LINE_LEN) {
@@ -275,24 +275,25 @@ static int startSecondPass(FILE *inputStream, const char *fileName,
 
 
 	/* Variable Instantiations */
-	validFlag = 1;
-	dataAddress = IC;
-	lineNumber = temp = 0;
-	instructionAddress = FIRST_MEMORY_ADDRESS;
+	validFlag			= 1;
+	dataAddress			= IC;
+	tempDataFilePtr		= NULL;
+	lineNumber = temp	= 0;
+	instructionAddress	= FIRST_MEMORY_ADDRESS;
 
 	if ((DC-IC) && !(tempDataFilePtr=tmpfile())) {
-		printf("Internal error in second pass: Unable to create data file.\n");
+		printf("Internal error in second pass: Unable to create temporary data file.\n");
 		perror(NULL);
 		return 0;
 	}
 
-	if (!createObjectFile(fileName, IC, DC))
+	if ((IC-FIRST_MEMORY_ADDRESS || DC-IC) && !createObjectFile(fileName, IC, DC))
 		return 0;
 
 	while ((result=getLine(inputLine, MAX_LINE_LEN+1, inputStream))!=EOF) {
 		lineNumber++;
 
-		if (isComment(inputLine[0]) || !result || result>MAX_LINE_LEN)
+		if (!result || isComment(inputLine[0]) || result>MAX_LINE_LEN)
 			continue;
 
 		ptr = inputLine;

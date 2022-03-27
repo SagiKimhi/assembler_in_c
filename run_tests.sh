@@ -1,6 +1,6 @@
 #!/bin/tcsh
 
-if ( $?1 ) then
+if ( "$1" != "" ) then
     set testDir = "$1"
 else
     set testDir = "tests"
@@ -12,7 +12,7 @@ foreach file ( "${testDir}"/*.as )
     set usrAns = $<
 
     if ( "${usrAns}" == "" || "${usrAns}" == "y" || "${usrAns}" == "Y" ) then
-        echo "\n`time ./assembler ${file:r} > ${file:r}.err`\n"
+        echo "\n`./assembler ${file:r} > ${file:r}.err`\n"
 
     else if ( "${usrAns}" == "stop" ) then
         echo "\nAborting...\n"
