@@ -1,5 +1,8 @@
 #include <libIO.h>
 
+/* encodeToFile: Encodes param address as an address
+ * and decode the param code to separate 4 bit groups,
+ * from most significant the least significant into FILE param stream. */
 void encodeToFile(FILE *stream, uint32_t address, int32_t code)
 {
 	const char		FIRST_HEX_GROUP		= 'A';
@@ -28,6 +31,10 @@ void encodeToFile(FILE *stream, uint32_t address, int32_t code)
 	}
 }
 
+/* openFile: Opens a file from param fileName with file extension 
+ * from param fileExtension. On mode from param mode.
+ * Will print error in case any encountered.
+ * Returns a file descriptor for the certain file. */
 FILE *openFile(const char *fileName, const char *fileExtension, const char *mode)
 {
 	FILE *fp;
@@ -61,6 +68,9 @@ FILE *openFile(const char *fileName, const char *fileExtension, const char *mode
 	return fp;
 }
 
+/* deleteFile: Deleteds a file with file name from param fileName
+ * and file extension from param fileExtension.
+ * Returns 0 if deleted successfully and -1 otherwise. */
 int deleteFile(const char *fileName, const char *fileExtension)
 {
 	char *newFileName;
@@ -93,6 +103,14 @@ int deleteFile(const char *fileName, const char *fileExtension)
 	return 0;
 }
 
+/* getToken: Scans a token from the null terminated character array pointer str
+ * with a maximum length specified by buffSize and saves it into dest.
+ * The scanned token will can only be one of the following:
+ * The scanned token will either be a single operand seperator character defined
+ * as OPERAND_SEPERATOR in assemblerSyntax.h or a nonwhitespace character array
+ * which doesnt contain the OPERAND_SEPERATOR character. 
+ * Upon success the function returns the amount of characters skipped in str
+ * up until the end of the scanned token, or FAILURE upon failure. */
 int getToken(char *dest, size_t buffSize, const char *str)
 {
 	int inString = 0, i = 0, j = 0;
