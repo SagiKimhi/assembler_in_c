@@ -120,7 +120,7 @@ void printInstructionError
 
 void printDirectiveError(DirectiveErrorFlag flag, uint32_t lineNumber)
 {
-	printf("Error in line number %lu: ", lineNumber);
+	printf("Error in line %lu: ", lineNumber);
 
 	switch (flag) {
 		case EMPTY_DIRECTIVE_SENTENCE:
@@ -168,7 +168,7 @@ void printDirectiveStringError(DirectiveStrErrorFlag flag, uint32_t lineNumber)
 void printDirectiveEntryError
 (const char *expr, DirectiveEntryErrorFlag flag, uint32_t lineNumber)
 {
-	printf("Error in line number %lu: ", lineNumber);
+	printf("Error in line %lu: ", lineNumber);
 
 	switch (flag) {
 		case UNDEFINED_LABEL:
@@ -185,7 +185,7 @@ void printDirectiveEntryError
 void printDirectiveExternError
 (const char *expr, DirectiveExtErrorFlag flag, uint32_t lineNumber)
 {
-	printf("Error in line number %lu: ", lineNumber);
+	printf("Error in line %lu: ", lineNumber);
 
 	switch (flag) {
 		case PREDEFINED_NON_EXTERN_LABEL:
