@@ -6,12 +6,7 @@
 #include <labels.h>
 #include <errors.h>
 
-#define DIRECTIVE_TOKEN_PREFIX	'.'
 #define DATA_SCAN_FORMAT		"%hd"
-#define START_DATA_DEFINITION	".data"
-#define START_STRING_DEFINITION ".string"
-#define START_ENTRY_DEFINITION	".entry"
-#define START_EXTERN_DEFINITION ".extern"
 
 typedef enum SentenceTypes {
 	INVALID_SENTENCE = FAILURE,

@@ -1,15 +1,6 @@
 #ifndef _ERRORS_H
 #define _ERRORS_H
 #include <libraries.h>
-#include <addressingModes.h>
-
-#ifndef FAILURE
-#define FAILURE -1
-#endif
-
-#ifndef SUCCESS
-#define SUCCESS 0
-#endif
 
 /* ----------------------------------------------------------------	*
  *							Error Flags:							*
@@ -76,28 +67,19 @@ typedef enum AddressModeErrorFlags {
 
 
 #define __ERROR__MISSING_ARGS(EXECUTABLE_NAME) {\
-	fprintf(stderr, "Usage: %s <FILE> <FILE> <...>\n"\
+	fprintf(stdout, "Usage: %s <FILE> <FILE> <...>\n"\
 			"Aborting...\n", EXECUTABLE_NAME);\
 }
 
-#define __ERROR__INVALID_FILE_NAME(FILE_NAME) {\
-	fprintf(stderr, "Error: file \"%s\" was not found.\n"\
-	"Please make sure the correct file path was provided.\n", FILE_NAME);\
-}
-
 #define __ERROR__UNABLE_TO_CREATE_FILE(FILE_NAME) {\
-	fprintf(stderr, "Error: unable to open/create file %s\n"\
+	fprintf(stdout, "Error: unable to open/create file %s\n"\
 	"This is an internal program error and is unrelated to the user.\n"\
 	"We are truly sorry for the inconvenience.\n", FILE_NAME);\
 }
 
 #define __ERROR__FILE_NAME_TOO_LONG(FILE_NAME) {\
-	fprintf(stderr, "Error: File \"%s\" exceeded the max length allowed for a file name \n"\
+	fprintf(stdout, "Error: File \"%s\" exceeded the max length allowed for a file name \n"\
 			"(%d)", FILE_NAME, FILENAME_MAX-MAX_FILE_EXTENSION_LEN);\
-}
-
-#define __ERROR__INVALID_COMMA(LINE_NUMBER) {\
-	fprintf(stderr, "Error: In line number %lu - invalid comma.\n", LINE_NUMBER);\
 }
 
 void printGeneralError

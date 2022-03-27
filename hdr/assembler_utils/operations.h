@@ -1,16 +1,11 @@
 #ifndef _OPERATIONS_H
 #define _OPERATIONS_H
 #include <libraries.h>
-#include <encodeBits.h>
 #include <addressingModes.h>
 
 /* ----------------------------------------------------------------	*
  *			    Constants, Defines, Typedefs, etc.  			    *
  * ----------------------------------------------------------------	*/
-#define MIN_OPERATION_LEN 3
-#define MAX_OPERATION_LEN 4
-#define NUMBER_OF_OPERATIONS 16
-
 typedef struct Operation {
 	const char *opName;				/* Operation Name */
 	int32_t opCode;					/* OP Code */

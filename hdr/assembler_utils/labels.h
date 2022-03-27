@@ -1,8 +1,6 @@
 #ifndef _LABELS_H
 #define _LABELS_H
 #include <libraries.h>
-#include <operations.h>
-#include <addressingModes.h>
 #include <errors.h>
 
 /* ----------------------------------------------------------------	*
@@ -19,7 +17,6 @@
     OPERATION(CODE)
 
 #define ADDRESS_BASE 16
-#define LOG_2_ADDRESS_BASE 4
 #define LABEL_FORMAT "%s:"
 #define LABEL_DEFINITION_SUFFIX ':'
 

@@ -48,16 +48,16 @@ SentenceType identifySentenceType(const char *token)
 		return COMMENT_SENTENCE;
 
 	if (*token==DIRECTIVE_TOKEN_PREFIX) {
-		if (!strcmp(token, START_DATA_DEFINITION))
+		if (!strcmp(token+1, START_DATA_DEFINITION))
 			return DIRECTIVE_DATA_SENTENCE;
 
-		if (!strcmp(token, START_STRING_DEFINITION))
+		if (!strcmp(token+1, START_STRING_DEFINITION))
 			return DIRECTIVE_STRING_SENTENCE;
 
-		if (!strcmp(token, START_ENTRY_DEFINITION))
+		if (!strcmp(token+1, START_ENTRY_DEFINITION))
 			return DIRECTIVE_ENTRY_SENTENCE;
 
-		if (!strcmp(token, START_EXTERN_DEFINITION))
+		if (!strcmp(token+1, START_EXTERN_DEFINITION))
 			return DIRECTIVE_EXTERN_SENTENCE;
 
 		return INVALID_SENTENCE;
@@ -236,7 +236,6 @@ static int validateInstructionOperand
 			if (scanImmediateExpression(operand, &temp))
 				return 1;
 
-			/* TODO: print error, invalid immediate operand */
 			printAddressingModeError(INVALID_IMMEDIATE_OPERAND, lineNumber);
 			return 0;
 
@@ -245,7 +244,6 @@ static int validateInstructionOperand
 		 * and we move on to checking operand as direct as well. */
 		case INDEX:
 			if (!scanIndexExpression(operand, &temp)) {
-				/* TODO: print error, invalid index */
 				printAddressingModeError(INVALID_INDEX, lineNumber);
 				return 0;
 			}
@@ -254,7 +252,6 @@ static int validateInstructionOperand
 			if (!(flags=isValidLabelTag(operand)))
 				return 1;
 
-			/* TODO: print error, invalid operand. */
 			printLabelError(operand, flags, lineNumber);
 			return 0;
 
@@ -285,8 +282,6 @@ static int validateDirectiveOperand
 			if (sscanf(operand, DATA_TEST_FORMAT, &tempN, &tempC)==1)
 				return 1;
 
-			/* TODO: print error, invalid data type,
-			 * expected an integer */
 			printDirectiveDataError(INVALID_DATA_TYPE, lineNumber);
 			return 0;
 
@@ -294,7 +289,6 @@ static int validateDirectiveOperand
 			if (*operand=='\"') {
 				for (; operand[tempN]; tempN++) {
 					if (!isprint(operand[tempN])) {
-						/* TODO: print error: unprintable character */
 						printDirectiveStringError(UNPRINTABLE_STRING_CHARACTER, lineNumber);
 						return 0;
 					}
@@ -305,7 +299,6 @@ static int validateDirectiveOperand
 					return tempN-1;
 			}
 
-			/* TODO: print error, missing string delimiters. */
 			printDirectiveStringError(MISSING_STRING_TOKEN, lineNumber);
 			return 0;
 

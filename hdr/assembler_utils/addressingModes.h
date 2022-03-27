@@ -10,13 +10,8 @@
 	OPERATION(INDEX),\
 	OPERATION(REGISTER_DIRECT)
 
-#define MAX_REGISTER_NUMBER 15					/* maximum register number */
-#define MIN_REGISTER_NUMBER 0					/* minimum register number */
-#define IMMEDIATE_FORMAT "#%hd"					/* A scanf format for an immediate expression */
-#define IMMEDIATE_EXPRESSION_PREFIX '#'			/* The immediate expression prefix character */
-#define REGISTER_DIRECT_FORMAT "r%2hd"			/* A scanf format for a direct expression */
-#define REGISTER_DIRECT_EXPRESSION_PREFIX 'r'	/* The register direct prefix character */
-#define MIN_INDEX_REGISTER_NUMBER 10			/* lowest register number for an index register */
+#define IMMEDIATE_FORMAT		"#%hd"	/* A scanf format for an immediate expression */
+#define REGISTER_DIRECT_FORMAT "r%2hd"	/* A scanf format for a direct expression */
 
 /* An enum of all the possible addressing modes defined 
  * in the GENERATE_ADDRESSING_MODES X macro. */

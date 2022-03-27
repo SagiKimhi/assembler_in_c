@@ -1,9 +1,0 @@
-Error in line 3: line length exceeds the maximum length allowed of 81 characters.
-Error in line 4: invalid label name |5INVALID_NAME&legnjkhasdfoijalt12387234mkasdflkj|, a label name must begin with an alphabetic
-letter and may only consist of alphanumeric characters.
-Error in line 7: invalid comma seperator location.
-Error in line 16: unnecessary extraneous text provided.
-Error in line 20: the index of an index addressing mode operand must be a register with a register number between 10 to 15.
-Error in line 23: encountered multiple definitions of label |END|, labels must differ in name.
-Error in line 25: encountered an empty label tag/name.
-Error in line 30: missing comma seperator between operands.

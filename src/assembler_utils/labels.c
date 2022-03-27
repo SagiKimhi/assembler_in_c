@@ -159,7 +159,7 @@ int isValidLabelTag(const char *expr)
 	if (ptr-expr>=MAX_LABEL_LEN)
 		flags |= INVALID_LABEL_LEN;
 
-	if (searchOperation(expr)!=FAILURE || isRegister(expr))
+	if (isSavedKeyword(expr))
 		flags |= INVALID_LABEL_NAME;
 
 	return flags;
