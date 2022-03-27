@@ -1,3 +1,4 @@
+#include "assemblerSyntax.h"
 #include <assembler.h>
 
 /* ----------------------------------------------------------------	*
@@ -138,7 +139,10 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree, uint16_t *IC, uin
 		lineNumber++;
 		labelFlag = 0;
 
-		if (!result) {
+		if (isComment(inputLine[0]) || !result)
+			continue;
+
+		if (result>MAX_LINE_LEN) {
 			printGeneralError(inputLine, INVALID_LINE_LENGTH, lineNumber);
 			validFlag = 0;
 			continue;
@@ -146,9 +150,6 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree, uint16_t *IC, uin
 
 		nextTokenPtr = inputLine;
 		nextTokenPtr += getToken(token, MAX_LINE_LEN+1, inputLine);
-
-		if (isComment(*token))
-			continue;
 
 		if (isLineLabelDefinition(token)) {
 			if ((result=isValidLabelDefinition(token, labelName))) {
@@ -240,7 +241,7 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree, uint16_t *IC, uin
 
 			case EMPTY_SENTENCE:
 				if (labelFlag) {
-					printLabelError(labelName, EMPTY_LABEL_TAG, lineNumber);
+					printLabelError(labelName, EMPTY_LABEL_DEFINITION_SENTENCE, lineNumber);
 					validFlag = 0;
 				}
 
@@ -288,10 +289,10 @@ static int startSecondPass(FILE *inputStream, const char *fileName,
 	if (!createObjectFile(fileName, IC, DC))
 		return 0;
 
-	while (getLine(inputLine, MAX_LINE_LEN+1, inputStream)!=EOF) {
+	while ((result=getLine(inputLine, MAX_LINE_LEN+1, inputStream))!=EOF) {
 		lineNumber++;
 
-		if (isComment(inputLine[0]))
+		if (isComment(inputLine[0]) || !result || result>MAX_LINE_LEN)
 			continue;
 
 		ptr = inputLine;

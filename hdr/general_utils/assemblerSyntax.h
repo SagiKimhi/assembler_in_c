@@ -30,7 +30,7 @@
  *				  SIZE AND LENGTH LIMITATION DEFINES				*
  * ----------------------------------------------------------------	*/
 /* Lengths */
-#define MAX_LINE_LEN				81
+#define MAX_LINE_LEN				80
 #define MAX_LABEL_LEN				31
 #define MAX_MACRO_LEN				31
 #define MIN_OPERATION_LEN			3

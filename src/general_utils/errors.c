@@ -78,6 +78,9 @@ void printLabelError
 
 	else if (flag & EMPTY_LABEL_TAG)
 		printf("encountered an attempt to define an empty label name/tag.\n");
+
+	else if (flag & EMPTY_LABEL_DEFINITION_SENTENCE)
+		printf("a label definition must be followed by non an empty sentence.\n");
 }
 
 void printInstructionError
@@ -121,7 +124,8 @@ void printDirectiveError(DirectiveErrorFlag flag, uint32_t lineNumber)
 
 	switch (flag) {
 		case EMPTY_DIRECTIVE_SENTENCE:
-			printf("encountered a directive without operands.\n");
+			printf(	"encountered an empty directive sentence. "
+					"Any directive must have at least one operand.\n");
 			break;
 	}
 }

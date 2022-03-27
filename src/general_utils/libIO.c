@@ -125,9 +125,9 @@ int getToken(char *dest, size_t buffSize, const char *str)
 /* getLine: scans a line of input from stream with a maximum length of size and saves it 
  * into buffer, including the newline character. This function also removes trailing
  * whitespaces and does not count trailing whitespaces as part of the line's length.
- * Returns the length of the string saved into buffer upon success.
- * Returns 0 upon failure, or if the newline character was encountered
- * before any non whitespace characters could be saved into buffer.
+ * Returns the length of the line excluding trailing whitespaces.
+ * Returns 0 if the newline character was encountered before any non whitespace 
+ * characters could be saved into buffer.
  * Returns EOF if reached EOF before scanning any non whitespace characters. */
 int getLine(char *buffer, int size, FILE *stream)
 {
@@ -158,17 +158,14 @@ int getLine(char *buffer, int size, FILE *stream)
 	}
 
 	/* If buffer is full and EOF was not reached */
-	if (i==(size-1) && c!=EOF) {
+	if (i==(size-1) && c!=EOF && c!='\n') {
 		buffer[i]='\0';
 
 		while ((c=fgetc(stream))!=EOF && c!='\n')
-			;
+			i++;
 
-		return 0;
+		return i;
 	}
-
-	if (c=='\n')
-		buffer[i++] = c;
 
 	buffer[i] = '\0';
 	return i;

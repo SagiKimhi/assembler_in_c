@@ -118,9 +118,9 @@ int isValidLabelDefinition(const char *expr, char dest[MAX_LABEL_LEN+1])
 	if (!expr || !(*expr))
 		return EMPTY_LABEL_TAG;
 
-	while (*expr && *expr!=LABEL_DEFINITION_SUFFIX) {
+	for (i=0; *expr && *expr!=LABEL_DEFINITION_SUFFIX; expr++) {
 		if (i<MAX_LABEL_LEN)
-			dest[i++] = *expr++;
+			dest[i++] = *expr;
 		else
 			flags |= INVALID_LABEL_LEN;
 	}
