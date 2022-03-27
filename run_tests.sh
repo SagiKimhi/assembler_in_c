@@ -12,7 +12,7 @@ foreach file ( "${testDir}"/*.as )
     set usrAns = $<
 
     if ( "${usrAns}" == "" || "${usrAns}" == "y" || "${usrAns}" == "Y" ) then
-        echo "\n`./assembler ${file:r} > ${file:r}.err`\n"
+        echo "\n`./assembler ${file:r}`\n"
 
     else if ( "${usrAns}" == "stop" ) then
         echo "\nAborting...\n"

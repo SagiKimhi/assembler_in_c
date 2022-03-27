@@ -63,18 +63,12 @@ int macroPreprocessor(const char *fileName)
 static void fscanAndExpandMacros(FILE *readPtr, FILE *writePtr, Tree *macroTree)
 {
 	Macro *macro = NULL;
-	int tempFilePosition, result = 0;
+	int tempFilePosition;
 	char tempWord[MAX_LINE_LEN+1] = {0};
 
-	while ((result=skipSpaces(readPtr))!=EOF) {
+	while (skipSpaces(readPtr)!=EOF) {
 		/* Get the current readPtr file position */
 		tempFilePosition = ftell(readPtr);
-
-		/* if line is empty, print a newline and continue */
-		if (result == '\n') {
-			putc('\n', writePtr);
-			continue;
-		}
 
 		/* Error checking */
 		if (getWord(tempWord, MAX_LINE_LEN+1, readPtr)==EOF) 
