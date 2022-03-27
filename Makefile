@@ -18,18 +18,17 @@ SOURCEDIR = src
 OBJECTDIR = obj
 
 # Create a list of subdirectories
-SUBDIRS = data_structures
-HEADERDIRS = $(HEADERDIR) $(foreach dir, $(SUBDIRS), $(addprefix $(HEADERDIR)/, $(dir)))
-SOURCEDIRS = $(SOURCEDIR) $(foreach dir, $(SUBDIRS), $(addprefix $(SOURCEDIR)/, $(dir)))
-OBJECTDIRS = $(OBJECTDIR) $(foreach dir, $(SUBDIRS), $(addprefix $(OBJECTDIR)/, $(dir)))
+HEADERDIRS := $(shell find $(HEADERDIR) -type d -print)
+SOURCEDIRS := $(shell find $(SOURCEDIR) -type d -print)
+OBJECTDIRS := $(subst $(SOURCEDIR),$(OBJECTDIR),$(SOURCEDIRS))
 
 # Search Path Variables
 VPATH = $(SOURCEDIRS)
-INCLUDES = $(foreach dir, $(HEADERDIRS), $(addprefix -I, $(dir)))
+INCLUDES = $(foreach dir,$(HEADERDIRS),$(addprefix -I,$(dir)))
 
 # Files Variables
 SOURCES = $(foreach dir,$(SOURCEDIRS),$(wildcard $(dir)/*.c))
-OBJECTS ::= $(subst $(SOURCEDIR),$(OBJECTDIR),$(SOURCES:.c=.o))
+OBJECTS := $(subst $(SOURCEDIR),$(OBJECTDIR),$(SOURCES:.c=.o))
 
 # Useful Commands
 RM = rm
