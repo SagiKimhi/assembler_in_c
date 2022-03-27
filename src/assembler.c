@@ -19,12 +19,12 @@ enum FileIndices {
  *						Static Function Prototypes					*
  * ----------------------------------------------------------------	*/
 /* encodeDirectiveDataSentence: Encodes a direct data sentence to the file from param dataFilePtr. 
- * From param sentence get a direct data sentence, with unlimeted amount of data words.
+ * From param sentence get a direct data sentence, with any amount of data words.
  * This function assumes the data sentence is in the correct format, and will not check for syntax. */
 static void encodeDirectiveDataSentence(FILE *dataFilePtr, char *sentence, uint16_t *dataAddress);
 
 /* encodeDirectiveStringSentence: Encodes a direct string sentence to the file from param dataFilePtr.
- * From param string get a string to encode to the file, max size of const MAX_LINE_LEN.
+ * From param string get a string to encode to the file.
  * Param dataAddress desribes the address of the string sentence in the file.
  * The function assumes the string format is correct and will not check for mistakes. */
 static void encodeDirectiveStringSentence(FILE *dataFilePtr, const char *string, uint16_t *dataAddress);
@@ -34,15 +34,16 @@ static void encodeDirectiveStringSentence(FILE *dataFilePtr, const char *string,
  * case of invalid entry. */
 static int encodeEntrySentence(char *entry, Tree *symbolTree, uint32_t lineNumber);
 
-/* encodeInstruction: encodes an instruction line to the file from param fileName.
- * From param sentence will ensure a valid operation, will also ensure valid operands.
+/* encodeInstruction: encodes an instruction line to the object file.
+ * Param fileName is only used to create extern file in case of need.
+ * From param sentence will ensure a valid operation, will also ensure valid direct/index operands.
  * On valid input will encode the operation and operands to the file. 
  * Returns 1 on valid sentence else 0. */
 static int encodeInstruction(const char *fileName, char *sentence, Tree *symbolTree,
 								uint16_t *instructionAddress, uint32_t lineNumber);
 
 /* encodeOperand: encode an operand to the relevent variable based on addressing mode.
- * Param fileName will be used to create extern file if needed.
+ * Param fileName will be used to create extern file and/or encode to it if needed.
  * Returns 0 if label doesn't exist error and 1 otherwise */
 static int encodeOperand(	const char *fileName, char *token, Tree *symbolTree,
 							int operationIndex, int isOriginOperand, 
@@ -80,14 +81,19 @@ static void printEntry(TreeNode *node);
  * based on the extern formatting */
 static void printExtern(TreeNode *node, uint16_t address);
 
-/* updateSymbolTreeAddresses: Recursivly add the instruction counter offest 
- * from param IC to all the tree nodes */ 
+/* updateSymbolAddress: add the instruction counter offest 
+ * from param IC to a label of type data/string and a current address smaller than IC. */ 
+static void updateSymbolAddress(Label *label, uint16_t IC);
+
+/* updateSymbolTreeAddresses: Recursivly update all symbol addresses in the symbol tree.
+ * based on the instruction counter, using the updateSymbolAddress function. */ 
 static void updateSymbolTreeAddresses(TreeNode *symbolTreeRoot, uint16_t IC);
 
 /* startFirstPass: Starts the first pass process,   
  * Will read a post processed file from param inputStream, and checks for a valid input.
- * prints syntax and invalid input errors, if encountered in the file.
- * Will also update the symbol tree from param symbolTree with labels.
+ * prints syntax, memory, and invalid input errors, if encountered in the file.
+ * Will also update the symbol tree from param symbolTree with labels,
+ * as well as the instruction counter IC, and data counter DC.
  * Returns 1 if process completed successfully and 0 otherwise */  
 static int	startFirstPass(FILE *inputStream, Tree *symbolTree, 
 									uint16_t *IC, uint16_t *DC);
@@ -115,11 +121,12 @@ static FILE *outputFiles[NUM_OF_OUTPUT_FILES] = {NULL, NULL, NULL};
 /* startAssembler: The main assembler function which initiates the first
  * pass of the assembler as well as the second pass if no errors pop up
  * during the first pass. 
- * The function returns a value of 1 if both passes completed successfully
- * without any errors, otherwise, 0 will be returned.
- * It is worth to mention that warnings do not count as errors and therefore
- * even if a warning was issued, the code will still be assembled and the
- * returned value would still be 1.*/
+ * The function returns a value of EXIT_SUCCESS if both passes completed successfully
+ * without any errors, otherwise, EXIT_FAILURE will be returned. 
+ * Upon success, a new object file will be created with the OBJECT_FILE_EXTENSION extension.
+ * if any entries were defined then an entry file will be created with the ENTRY_FILE_EXTENSION.
+ * And if any extern labels were declared and used in an instruction, then an extern file
+ * will be created with the EXTERN_FILE_EXTENSION. */
 int startAssembler(const char *fileName)
 {
 	/* Variable definitions */
@@ -166,11 +173,12 @@ int startAssembler(const char *fileName)
 /* ----------------------------------------------------------------	*
  *							Static Functions						*
  * ----------------------------------------------------------------	*/
- /* startFirstPass: Starts the first pass process,   
-  * Will read a post processed file from param inputStream, and checks for a valid input.
-  * prints syntax and invalid input errors, if encountered in the file.
-  * Will also update the symbol tree from param symbolTree with labels.
-  * Returns 1 if process completed successfully and 0 otherwise */  
+/* startFirstPass: Starts the first pass process,   
+ * Will read a post processed file from param inputStream, and checks for a valid input.
+ * prints syntax, memory, and invalid input errors, if encountered in the file.
+ * Will also update the symbol tree from param symbolTree with labels,
+ * as well as the instruction counter IC, and data counter DC.
+ * Returns 1 if process completed successfully and 0 otherwise */  
 static int startFirstPass(FILE *inputStream, Tree *symbolTree, uint16_t *IC, uint16_t *DC)
 {
 	/* Variable Definitions */
@@ -483,6 +491,8 @@ static void printExtern(TreeNode *node, uint16_t address)
 	fprintf(outputFiles[EXTERN_FILE], "%s OFFSET %04hu\n\n", getTreeNodeKey(node), address);
 }
 
+/* updateSymbolTreeAddresses: add the instruction counter offest 
+ * from param IC to a label of type data/string and a current address smaller than IC. */ 
 static void updateSymbolAddress(Label *label, uint16_t IC)
 {
 	uint16_t temp;
@@ -498,8 +508,8 @@ static void updateSymbolAddress(Label *label, uint16_t IC)
 	}
 }
 
-/* updateSymbolTreeAddresses: Recursivly add the instruction counter offest 
- * from param IC to all the tree nodes */ 
+/* updateSymbolTreeAddresses: Recursivly update all symbol addresses in the symbol tree.
+ * based on the instruction counter, using the updateSymbolAddress function. */ 
 static void updateSymbolTreeAddresses(TreeNode *symbolTreeRoot, uint16_t IC)
 {
 	if (!symbolTreeRoot)
@@ -534,7 +544,7 @@ static void deleteOutputFiles(const char *fileName)
 
 /* encodeInstruction: encodes an instruction line to the object file.
  * Param fileName is only used to create extern file in case of need.
- * From param sentence will ensure a valid operation, will also ensure valid operands.
+ * From param sentence will ensure a valid operation, will also ensure valid direct/index operands.
  * On valid input will encode the operation and operands to the file. 
  * Returns 1 on valid sentence else 0. */
 static int encodeInstruction(const char *fileName, char *sentence, Tree *symbolTree, 
@@ -592,7 +602,7 @@ static int encodeInstruction(const char *fileName, char *sentence, Tree *symbolT
 }
 
 /* encodeOperand: encode an operand to the relevent variable based on addressing mode.
- * Param fileName will be used to create extern file if needed.
+ * Param fileName will be used to create extern file and/or encode to it if needed.
  * Returns 0 if label doesn't exist error and 1 otherwise */
 static int encodeOperand(	const char *fileName, char *token, Tree *symbolTree,
 					int operationIndex, int isOriginOperand, 
@@ -663,9 +673,9 @@ static int encodeOperand(	const char *fileName, char *token, Tree *symbolTree,
 	*offset += getAdditionalMemoryWords(addressingMode);
 	return 1;
 }
+
 /* encodeDirectiveDataSentence: Encodes a direct data sentence to the file from param dataFilePtr. 
- * From param sentence get a direct data sentence, with unlimeted amount of data words.
- * Param dataAddress describes the address of the data sentence in the file.
+ * From param sentence get a direct data sentence, with any amount of data words.
  * This function assumes the data sentence is in the correct format, and will not check for syntax. */
 static void encodeDirectiveDataSentence(FILE *dataFilePtr, char *sentence, uint16_t *dataAddress)
 {
@@ -683,8 +693,9 @@ static void encodeDirectiveDataSentence(FILE *dataFilePtr, char *sentence, uint1
 		encodeToFile(dataFilePtr, (*dataAddress)++, encodedDataWord);
 	}
 }
+
 /* encodeDirectiveStringSentence: Encodes a direct string sentence to the file from param dataFilePtr.
- * From param string get a string to encode to the file, max size of const MAX_LINE_LEN.
+ * From param string get a string to encode to the file.
  * Param dataAddress desribes the address of the string sentence in the file.
  * The function assumes the string format is correct and will not check for mistakes. */
 static void encodeDirectiveStringSentence(FILE *dataFilePtr, const char *string, uint16_t *dataAddress)
