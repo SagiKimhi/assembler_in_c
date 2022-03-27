@@ -1,3 +1,4 @@
+#include "assemblerSyntax.h"
 #include <errors.h>
 
 void printGeneralError
@@ -49,38 +50,34 @@ void printCommaError(CommaErrorFlag flag, uint32_t lineNumber)
 void printLabelError
 (const char *labelName, LabelErrorFlag flag, uint32_t lineNumber)
 {
+	if (!flag)
+		return;
+
 	printf("Error in line %lu: ", lineNumber);
 
-	switch (flag) {
-		case INVALID_LABEL_LEN:
-			printf(	"label name |%s| surpasses %d characters which is the \n"
-					"maximum length allowed for a label name.\n",
-					labelName, MAX_LABEL_LEN);
-			break;
+	if (flag & INVALID_LABEL_LEN)
+		printf(	"label name |%s| surpasses %d characters which is the \n"
+				"maximum length allowed for a label name.\n",
+				labelName, MAX_LABEL_LEN);
 
-		case INVALID_LABEL_NAME:
-			printf(	"|%s| is a saved keyword and therefore may not be used as a label name.\n",
-					labelName);
-			break;
+	else if (flag & INVALID_LABEL_NAME)
+		printf(	"invalid label name - keyword \"%s\" is a saved keyword "
+				"and may not be used as a label name.\n", labelName);
 
-		case INVALID_LABEL_SYNTAX:
-			printf(	"invalid label name |%s|, a label name must begin with an alphabetic\n"
-					"letter and may only consist of alphanumeric characters.\n", labelName);
-			break;
+	else if (flag & INVALID_LABEL_SYNTAX)
+		printf(	"invalid label syntax for label |%s|.\na label name must begin with an "
+				"alphabetic letter followed by alphanumeric characters only.\n", labelName);
 
-		case LABEL_ALREADY_DEFINED:
-			printf(	"encountered multiple definitions of label |%s|, "
-					"labels must differ in name.\n", labelName);
-			break;
+	else if (flag & LABEL_ALREADY_DEFINED)
+		printf(	"encountered multiple definitions of label |%s|, "
+				"labels must differ in name.\n", labelName);
 
-		case MISSING_LABEL_DEFINITION_SUFFIX:
-			printf("label definitions must end with the appropriate suffix ':'\n");
-			break;
+	else if (flag & MISSING_LABEL_DEFINITION_SUFFIX)
+		printf(	"label definitions must end with the appropriate "
+				"suffix '%c'\n", LABEL_DEFINITION_SUFFIX);
 
-		case EMPTY_LABEL_TAG:
-			printf("encountered an empty label tag/name.\n");
-			break;
-	}
+	else if (flag & EMPTY_LABEL_TAG)
+		printf("encountered an attempt to define an empty label name/tag.\n");
 }
 
 void printInstructionError
@@ -199,8 +196,8 @@ void printAddressingModeError(AddressModeErrorFlag flag, uint32_t lineNumber)
 
 	switch (flag) {
 		case INVALID_INDEX:
-			printf(	"the index of an index addressing mode operand must be a register "
-					"with a register number between %d to %d.\n", 
+			printf(	"invalid index. an index must be a register with "
+					"a register number between %d to %d.\n", 
 					MIN_INDEX_REGISTER_NUMBER, MAX_REGISTER_NUMBER);
 			break;
 		
