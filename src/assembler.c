@@ -18,42 +18,86 @@ enum FileIndices {
 /* ----------------------------------------------------------------	*
  *						Static Function Prototypes					*
  * ----------------------------------------------------------------	*/
+/* encodeDirectiveDataSentence: Encodes a direct data sentence to the file from param dataFilePtr. 
+ * From param sentence get a direct data sentence, with unlimeted amount of data words.
+ * This function assumes the data sentence is in the correct format, and will not check for syntax. */
 static void encodeDirectiveDataSentence(FILE *dataFilePtr, char *sentence, uint16_t *dataAddress);
 
+/* encodeDirectiveStringSentence: Encodes a direct string sentence to the file from param dataFilePtr.
+ * From param string get a string to encode to the file, max size of const MAX_LINE_LEN.
+ * Param dataAddress desribes the address of the string sentence in the file.
+ * The function assumes the string format is correct and will not check for mistakes. */
 static void encodeDirectiveStringSentence(FILE *dataFilePtr, const char *string, uint16_t *dataAddress);
 
+/* encodeEntrySentence: Encodes an entry sentence to the entry file. From param entry
+ * checks if the entry is known, and if entry is not external, will throw errors in
+ * case of invalid entry. */
 static int encodeEntrySentence(char *entry, Tree *symbolTree, uint32_t lineNumber);
 
+/* encodeInstruction: encodes an instruction line to the file from param fileName.
+ * From param sentence will ensure a valid operation, will also ensure valid operands.
+ * On valid input will encode the operation and operands to the file. 
+ * Returns 1 on valid sentence else 0. */
 static int encodeInstruction(const char *fileName, char *sentence, Tree *symbolTree,
 								uint16_t *instructionAddress, uint32_t lineNumber);
 
+/* encodeOperand: encode an operand to the relevent variable based on addressing mode.
+ * Param fileName will be used to create extern file if needed.
+ * Returns 0 if label doesn't exist error and 1 otherwise */
 static int encodeOperand(	const char *fileName, char *token, Tree *symbolTree,
 							int operationIndex, int isOriginOperand, 
 							int32_t *operationWord, int32_t additionalWords[], 
 							uint16_t instructionAddress, int *offset, uint32_t lineNumber);
 
+/* isLineLabel: Returns whether or not the line defines a label. */
 static int	isLineLabelDefinition(const char *token);
 
+/* createEntryFile: Creates an entry file with name from param fileName 
+ * return 1 if file created successfully and 0 otherwise */
 static int	createEntryFile(const char *fileName);
 
+/* createExternFile: Creates an extern file with name from param fileName 
+ * return 1 if file created successfully and 0 otherwise */
 static int	createExternFile(const char *fileName);
 
+/* createObjectFile: Creates an object file with name from param fileName 
+ * Will write as a header the instruction and data amount, from param IC and DC
+ * return 1 if file created successfully and 0 otherwise */
 static int	createObjectFile(const char *fileName, 
 							uint16_t IC, uint16_t DC);
 
+/* closeOutputFiles: closes all output files safely */
 static void closeOutputFiles(void);
 
+/* deleteOutputFiles: Deletes all output files in case there was an error
+ * and an output is not required */
 static void deleteOutputFiles(const char *fileName);
 
+/* printEntry: writes an entry to the entry file */
 static void printEntry(TreeNode *node);
 
+/* printExtern: writes an external label to the extern file
+ * based on the extern formatting */
 static void printExtern(TreeNode *node, uint16_t address);
 
+/* updateSymbolTreeAddresses: Recursivly add the instruction counter offest 
+ * from param IC to all the tree nodes */ 
 static void updateSymbolTreeAddresses(TreeNode *symbolTreeRoot, uint16_t IC);
 
+/* startFirstPass: Starts the first pass process,   
+ * Will read a post processed file from param inputStream, and checks for a valid input.
+ * prints syntax and invalid input errors, if encountered in the file.
+ * Will also update the symbol tree from param symbolTree with labels.
+ * Returns 1 if process completed successfully and 0 otherwise */  
 static int	startFirstPass(FILE *inputStream, Tree *symbolTree, 
 									uint16_t *IC, uint16_t *DC);
 
+/* startSecondPass: Starts the second pass process,
+ * Will read a post processed file from param inputStream, after it was verified
+ * in the first pass. Will encode lines to the necessary files using labels
+ * identified in the first pass. Will check for label declarations and will
+ * print errors in case issues were encountered.
+ * Returns 1 if the process completed successfully and 0 otherwise */
 static int	startSecondPass(FILE *inputStream, const char *fileName, 
 							Tree *symbolTree, uint16_t IC, uint16_t DC);
 /* ----------------------------------------------------------------	*/
@@ -61,6 +105,7 @@ static int	startSecondPass(FILE *inputStream, const char *fileName,
 /* ----------------------------------------------------------------	*
  *						Static Global Variables						*
  * ----------------------------------------------------------------	*/
+/* outputFiles: represent an array of all the static output files */
 static FILE *outputFiles[NUM_OF_OUTPUT_FILES] = {NULL, NULL, NULL};
 /* ----------------------------------------------------------------	*/
 
@@ -121,6 +166,11 @@ int startAssembler(const char *fileName)
 /* ----------------------------------------------------------------	*
  *							Static Functions						*
  * ----------------------------------------------------------------	*/
+ /* startFirstPass: Starts the first pass process,   
+  * Will read a post processed file from param inputStream, and checks for a valid input.
+  * prints syntax and invalid input errors, if encountered in the file.
+  * Will also update the symbol tree from param symbolTree with labels.
+  * Returns 1 if process completed successfully and 0 otherwise */  
 static int startFirstPass(FILE *inputStream, Tree *symbolTree, uint16_t *IC, uint16_t *DC)
 {
 	/* Variable Definitions */
@@ -262,6 +312,12 @@ static int startFirstPass(FILE *inputStream, Tree *symbolTree, uint16_t *IC, uin
 	return validFlag;
 }
 
+/* startSecondPass: Starts the second pass process,
+ * Will read a post processed file from param inputStream, after it was verified
+ * in the first pass. Will encode lines to the necessary files using labels
+ * identified in the first pass. Will check for label declarations and will
+ * print errors in case issues were encountered.
+ * Returns 1 if the process completed successfully and 0 otherwise */
 static int startSecondPass(FILE *inputStream, const char *fileName, 
 							Tree *symbolTree, uint16_t IC, uint16_t DC)
 {
@@ -366,6 +422,9 @@ static int isLineLabelDefinition(const char *token)
 	return (token[strlen(token)-1] == LABEL_DEFINITION_SUFFIX);
 }
 
+/* createObjectFile: Creates an object file with name from param fileName 
+ * Will write as a header the instruction and data amount, from param IC and DC
+ * return 1 if file created successfully and 0 otherwise */
 static int createObjectFile(const char *fileName, uint16_t IC, uint16_t DC)
 {
 	outputFiles[OBJECT_FILE] = openFile(fileName, OBJECT_FILE_EXTENSION, "w");
@@ -377,6 +436,8 @@ static int createObjectFile(const char *fileName, uint16_t IC, uint16_t DC)
 	return 1;
 }
 
+/* createEntryFile: Creates an entry file with name from param fileName 
+ * return 1 if file created successfully and 0 otherwise */
 static int createEntryFile(const char *fileName)
 {
 	outputFiles[ENTRY_FILE] = openFile(fileName, ENTRY_FILE_EXTENSION, "w");
@@ -387,6 +448,8 @@ static int createEntryFile(const char *fileName)
 	return 1;
 }
 
+/* createExternFile: Creates an extern file with name from param fileName 
+ * return 1 if file created successfully and 0 otherwise */
 static int createExternFile(const char *fileName)
 {
 	outputFiles[EXTERN_FILE] = openFile(fileName, EXTERN_FILE_EXTENSION, "w");
@@ -397,6 +460,7 @@ static int createExternFile(const char *fileName)
 	return 1;
 }
 
+/* printEntry: writes an entry to the entry file */
 static void printEntry(TreeNode *node)
 {
 	Label *label = getTreeNodeData(node);
@@ -408,6 +472,8 @@ static void printEntry(TreeNode *node)
 			getTreeNodeKey(node), getBaseAddress(label), getOffset(label));
 }
 
+/* printExtern: writes an external label to the extern file
+ * based on the extern formatting */
 static void printExtern(TreeNode *node, uint16_t address)
 {
 	if (!outputFiles[EXTERN_FILE])
@@ -432,6 +498,8 @@ static void updateSymbolAddress(Label *label, uint16_t IC)
 	}
 }
 
+/* updateSymbolTreeAddresses: Recursivly add the instruction counter offest 
+ * from param IC to all the tree nodes */ 
 static void updateSymbolTreeAddresses(TreeNode *symbolTreeRoot, uint16_t IC)
 {
 	if (!symbolTreeRoot)
@@ -442,6 +510,7 @@ static void updateSymbolTreeAddresses(TreeNode *symbolTreeRoot, uint16_t IC)
 	updateSymbolTreeAddresses(getRightChild(symbolTreeRoot), IC);
 }
 
+/* closeOutputFiles: closes all output files safely */
 static void closeOutputFiles(void)
 {
 	int i;
@@ -454,6 +523,8 @@ static void closeOutputFiles(void)
 	}
 }
 
+/* deleteOutputFiles: Deletes all output files in case there was an error
+ * and an output is not required */
 static void deleteOutputFiles(const char *fileName)
 {
 	deleteFile(fileName, OBJECT_FILE_EXTENSION);
@@ -461,6 +532,11 @@ static void deleteOutputFiles(const char *fileName)
 	deleteFile(fileName, EXTERN_FILE_EXTENSION);
 }
 
+/* encodeInstruction: encodes an instruction line to the object file.
+ * Param fileName is only used to create extern file in case of need.
+ * From param sentence will ensure a valid operation, will also ensure valid operands.
+ * On valid input will encode the operation and operands to the file. 
+ * Returns 1 on valid sentence else 0. */
 static int encodeInstruction(const char *fileName, char *sentence, Tree *symbolTree, 
 							uint16_t *instructionAddress, uint32_t lineNumber)
 {
@@ -515,6 +591,9 @@ static int encodeInstruction(const char *fileName, char *sentence, Tree *symbolT
 	return validFlag;
 }
 
+/* encodeOperand: encode an operand to the relevent variable based on addressing mode.
+ * Param fileName will be used to create extern file if needed.
+ * Returns 0 if label doesn't exist error and 1 otherwise */
 static int encodeOperand(	const char *fileName, char *token, Tree *symbolTree,
 					int operationIndex, int isOriginOperand, 
 					int32_t *operationWord, int32_t additionalWords[], 
@@ -584,6 +663,10 @@ static int encodeOperand(	const char *fileName, char *token, Tree *symbolTree,
 	*offset += getAdditionalMemoryWords(addressingMode);
 	return 1;
 }
+/* encodeDirectiveDataSentence: Encodes a direct data sentence to the file from param dataFilePtr. 
+ * From param sentence get a direct data sentence, with unlimeted amount of data words.
+ * Param dataAddress describes the address of the data sentence in the file.
+ * This function assumes the data sentence is in the correct format, and will not check for syntax. */
 static void encodeDirectiveDataSentence(FILE *dataFilePtr, char *sentence, uint16_t *dataAddress)
 {
 	char *token;
@@ -600,7 +683,10 @@ static void encodeDirectiveDataSentence(FILE *dataFilePtr, char *sentence, uint1
 		encodeToFile(dataFilePtr, (*dataAddress)++, encodedDataWord);
 	}
 }
-
+/* encodeDirectiveStringSentence: Encodes a direct string sentence to the file from param dataFilePtr.
+ * From param string get a string to encode to the file, max size of const MAX_LINE_LEN.
+ * Param dataAddress desribes the address of the string sentence in the file.
+ * The function assumes the string format is correct and will not check for mistakes. */
 static void encodeDirectiveStringSentence(FILE *dataFilePtr, const char *string, uint16_t *dataAddress)
 {
 	int i;
@@ -621,6 +707,9 @@ static void encodeDirectiveStringSentence(FILE *dataFilePtr, const char *string,
 	encodeToFile(dataFilePtr, (*dataAddress)++, encodedDataWord);
 }
 
+/* encodeEntrySentence: Encodes an entry sentence to the entry file. From param entry
+ * checks if the entry is known, and if entry is not external, will throw errors in
+ * case of invalid entry. Returns 1 on valid entry, and 0 on error. */
 static int encodeEntrySentence(char *entry, Tree *symbolTree, uint32_t lineNumber)
 {
 	Label *label;
