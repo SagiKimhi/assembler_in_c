@@ -1,0 +1,26 @@
+Error in line 4: unknown identifier |hello|
+Error in line 6: unnecessary extraneous text provided.
+Error in line 8: line length exceeds the maximum length allowed of 80 characters.
+Error in line 10: missing comma seperator between operands.
+Error in line 12: invalid comma seperator location.
+Error in line 14: invalid comma seperator location.
+Error in line 16: label name |thisLabelIsWayLongerThenItShouldBe:| surpasses 31 characters which is the 
+maximum length allowed for a label name.
+Error in line 18: invalid label name - keyword "r14:" is a saved keyword and may not be used as a label name.
+Error in line 20: invalid label name - keyword "mov:" is a saved keyword and may not be used as a label name.
+Error in line 22: invalid label syntax for label |5Label:|.
+a label name must begin with an alphabetic letter followed by alphanumeric characters only.
+Error in line 24: encountered an attempt to define an empty label name/tag.
+Error in line 26: a label definition must be followed by non an empty sentence.
+Error in line 29: encountered multiple definitions of label |someLabel|, labels must differ in name.
+Error in line 32: operation |mov| requires more operands.
+Error in line 34: illegal addressing mode of origin operand for operation |lea|.
+Error in line 36: illegal addressing mode of destination operand for operation |lea|.
+Error in line 38: invalid data type for data directive, please make sure you are only providing short (max 16 bit) integers as data.
+Error in line 40: a string operand must begin and end with the string token ".
+Error in line 42: a string operand must begin and end with the string token ".
+Error in line 44: a string operand must begin and end with the string token ".
+Error in line 46: the specified string operand contains unprintable characters.
+Error in line 48: label |someLabel| is already defined in this file and therefore cannot be declared extern.
+Error in line 50: invalid index. an index must be a register with a register number between 10 to 15.
+Error in line 52: invalid immediate addressing mode operand, operand must be a short (16 bit) integer.

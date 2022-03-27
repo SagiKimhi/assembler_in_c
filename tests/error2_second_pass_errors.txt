@@ -1,0 +1,4 @@
+Error in line 26: undefined label used as origin operand for operation |mov|.
+Error in line 28: undefined label used as destination operand for operation |mov|.
+Error in line 30: label |List| is declared as entry but was never defined.
+Error in line 32: cannot declare label |W| as entry since it is already declared as extern in this file.
